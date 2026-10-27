@@ -107,3 +107,21 @@ sys_add(void)
     return -1;
   return a + b;
 }
+
+// Configure the current process's workflow and deadline metadata.
+int
+sys_setworkflow(void)
+{
+  int wid;
+  int deadline;
+  struct proc *p = myproc();
+
+  if(argint(0, &wid) < 0 || argint(1, &deadline) < 0)
+    return -1;
+
+  p->wid = wid;
+  p->deadline = (uint)deadline;
+  p->donated = NO_DEADLINE;
+  p->waiting_on = 0;
+  return 0;
+}

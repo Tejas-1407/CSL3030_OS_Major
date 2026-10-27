@@ -25,6 +25,7 @@ int sleep(int);
 int uptime(void);
 int hello(void);
 int add(int, int);
+int setworkflow(int wid, uint deadline);
 
 // ulib.c
 int stat(const char*, struct stat*);

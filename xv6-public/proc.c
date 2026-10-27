@@ -88,6 +88,11 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  // Initialize deadline scheduler and pipe-donation metadata.
+  p->wid = 0;
+  p->deadline = NO_DEADLINE;
+  p->donated = NO_DEADLINE;
+  p->waiting_on = 0;
 
   release(&ptable.lock);
 
@@ -323,6 +328,7 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *best;
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -330,20 +336,25 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
-    // Loop over process table looking for process to run.
+    // Find the runnable process with the earliest deadline.
     acquire(&ptable.lock);
+    best = 0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+      if(best == 0 || p->deadline < best->deadline)
+        best = p;
+    }
 
+    if(best != 0){
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
+      c->proc = best;
+      switchuvm(best);
+      best->state = RUNNING;
 
-      swtch(&(c->scheduler), p->context);
+      swtch(&(c->scheduler), best->context);
       switchkvm();
 
       // Process is done running for now.
@@ -351,7 +362,6 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
-
   }
 }
 

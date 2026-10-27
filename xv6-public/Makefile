@@ -184,6 +184,7 @@ UPROGS=\
 	_mytest\
 	_hello_test\
 	_add_test\
+	_edf_test
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
