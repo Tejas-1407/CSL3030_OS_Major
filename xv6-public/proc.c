@@ -242,8 +242,10 @@ exit(void)
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
     if(curproc->ofile[fd]){
-      fileclose(curproc->ofile[fd]);
+      struct file *f = curproc->ofile[fd];
       curproc->ofile[fd] = 0;
+      pipewriterclose(f, curproc);
+      fileclose(f);
     }
   }
 

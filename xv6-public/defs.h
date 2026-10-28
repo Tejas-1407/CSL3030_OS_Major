@@ -98,6 +98,7 @@ void            picinit(void);
 // pipe.c
 int             pipealloc(struct file**, struct file**);
 void            pipeclose(struct pipe*, int);
+void            pipewriterclose(struct file*, struct proc*);
 int             piperead(struct pipe*, char*, int);
 int             pipewrite(struct pipe*, char*, int);
 
