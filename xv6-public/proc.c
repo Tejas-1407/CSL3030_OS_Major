@@ -331,6 +331,8 @@ scheduler(void)
 {
   struct proc *p;
   struct proc *best;
+  uint deadline;
+  uint best_deadline;
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -341,11 +343,15 @@ scheduler(void)
     // Find the runnable process with the earliest deadline.
     acquire(&ptable.lock);
     best = 0;
+    best_deadline = NO_DEADLINE;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-      if(best == 0 || p->deadline < best->deadline)
+      deadline = p->deadline < p->donated ? p->deadline : p->donated;
+      if(best == 0 || deadline < best_deadline){
         best = p;
+        best_deadline = deadline;
+      }
     }
 
     if(best != 0){
@@ -365,6 +371,23 @@ scheduler(void)
     }
     release(&ptable.lock);
   }
+}
+
+// Propagate an earlier deadline through the process dependency chain.
+void
+donate(struct proc *to, uint deadline)
+{
+  int i;
+
+  acquire(&ptable.lock);
+  for(i = 0; to != 0 && i < NPROC; i++){
+    if(to->donated <= deadline)
+      break;
+    to->donated = deadline;
+    cprintf("DONATE receiver=%d deadline=%d\n", to->pid, deadline);
+    to = to->waiting_on;
+  }
+  release(&ptable.lock);
 }
 
 // Enter scheduler.  Must hold only ptable.lock

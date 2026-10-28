@@ -155,6 +155,14 @@ piperead(struct pipe *p, char *addr, int n)
     // PIPE DEPENDENCY DEBUG: remove after validation.
     cprintf("PIPE_WAIT reader=%d writer=%d\n", reader->pid,
             p->writer ? p->writer->pid : -1);
+    if(p->writer != 0){
+      uint deadline = reader->deadline < reader->donated ?
+                      reader->deadline : reader->donated;
+      if(p->writer->donated > deadline)
+        cprintf("DONATE donor=%d receiver=%d deadline=%d\n",
+                reader->pid, p->writer->pid, deadline);
+      donate(p->writer, deadline);
+    }
     waited = 1;
     sleep(&p->nread, &p->lock); //DOC: piperead-sleep
   }
