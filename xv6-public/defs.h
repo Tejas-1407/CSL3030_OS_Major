@@ -99,6 +99,7 @@ void            picinit(void);
 int             pipealloc(struct file**, struct file**);
 void            pipeclose(struct pipe*, int);
 void            pipewriterclose(struct file*, struct proc*);
+void            clear_pipe_waiters(void*, struct proc*);
 int             piperead(struct pipe*, char*, int);
 int             pipewrite(struct pipe*, char*, int);
 
@@ -110,6 +111,8 @@ int             fork(void);
 int             growproc(int);
 int             kill(int);
 void            donate(struct proc*, uint);
+void            set_waiting_on(struct proc*, struct proc*);
+void            clear_waiting_on(struct proc*);
 struct cpu*     mycpu(void);
 struct proc*    myproc();
 void            pinit(void);

@@ -19,6 +19,8 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+static void recompute_donations_locked(void);
+static void donate_locked(struct proc *to, uint deadline);
 
 void
 pinit(void)
@@ -268,8 +270,14 @@ exit(void)
     }
   }
 
+  curproc->waiting_on = 0;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    if(p->waiting_on == curproc)
+      p->waiting_on = 0;
+
   // Jump into the scheduler, never to return.
   curproc->state = ZOMBIE;
+  recompute_donations_locked();
   sched();
   panic("zombie exit");
 }
@@ -377,16 +385,111 @@ scheduler(void)
 void
 donate(struct proc *to, uint deadline)
 {
-  int i;
-
   acquire(&ptable.lock);
+  donate_locked(to, deadline);
+  release(&ptable.lock);
+}
+
+static void
+donate_locked(struct proc *to, uint deadline)
+{
+  int i, j;
+  struct proc *visited[NPROC];
+
   for(i = 0; to != 0 && i < NPROC; i++){
+    for(j = 0; j < i; j++)
+      if(visited[j] == to)
+        return;
+    visited[i] = to;
     if(to->donated <= deadline)
       break;
     to->donated = deadline;
     cprintf("DONATE receiver=%d deadline=%d\n", to->pid, deadline);
     to = to->waiting_on;
   }
+}
+
+// Rebuild cached donations from live dependency chains.
+// The caller must hold ptable.lock.
+static void
+recompute_donations_locked(void)
+{
+  int i, j;
+  struct proc *p, *to;
+  struct proc *visited[NPROC];
+  uint deadline;
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    p->donated = NO_DEADLINE;
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == UNUSED || p->state == ZOMBIE)
+      continue;
+
+    deadline = p->deadline;
+    to = p->waiting_on;
+    for(i = 0; to != 0 && i < NPROC; i++){
+      for(j = 0; j < i; j++)
+        if(visited[j] == to)
+          break;
+      if(j < i)
+        break;
+
+      visited[i] = to;
+      if(to->state == UNUSED || to->state == ZOMBIE)
+        break;
+      if(to->donated > deadline)
+        to->donated = deadline;
+      to = to->waiting_on;
+    }
+  }
+}
+
+// Set a pipe dependency and apply the reader's effective deadline.
+void
+set_waiting_on(struct proc *from, struct proc *to)
+{
+  uint deadline;
+
+  acquire(&ptable.lock);
+  from->waiting_on = to;
+  deadline = from->deadline < from->donated ?
+             from->deadline : from->donated;
+  if(to != 0)
+    donate_locked(to, deadline);
+  release(&ptable.lock);
+}
+
+// Clear one process's dependency and recompute all remaining donations.
+void
+clear_waiting_on(struct proc *p)
+{
+  acquire(&ptable.lock);
+  if(p->waiting_on != 0){
+    p->waiting_on = 0;
+    recompute_donations_locked();
+  }
+  release(&ptable.lock);
+}
+
+// Clear pipe readers' dependencies on a writer whose pipe descriptor closed.
+void
+clear_pipe_waiters(void *chan, struct proc *writer)
+{
+  int changed;
+  struct proc *p;
+
+  changed = 0;
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == SLEEPING && p->chan == chan &&
+       p->waiting_on == writer){
+      p->waiting_on = 0;
+      changed = 1;
+    }
+  }
+  if(changed)
+    recompute_donations_locked();
   release(&ptable.lock);
 }
 
@@ -492,11 +595,21 @@ sleep(void *chan, struct spinlock *lk)
 static void
 wakeup1(void *chan)
 {
+  int changed;
   struct proc *p;
 
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    if(p->state == SLEEPING && p->chan == chan)
+  changed = 0;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state == SLEEPING && p->chan == chan){
       p->state = RUNNABLE;
+      if(p->waiting_on != 0){
+        p->waiting_on = 0;
+        changed = 1;
+      }
+    }
+  }
+  if(changed)
+    recompute_donations_locked();
 }
 
 // Wake up all processes sleeping on chan.
@@ -521,8 +634,13 @@ kill(int pid)
     if(p->pid == pid){
       p->killed = 1;
       // Wake process from sleep if necessary.
-      if(p->state == SLEEPING)
+      if(p->state == SLEEPING){
         p->state = RUNNABLE;
+        if(p->waiting_on != 0){
+          p->waiting_on = 0;
+          recompute_donations_locked();
+        }
+      }
       release(&ptable.lock);
       return 0;
     }
