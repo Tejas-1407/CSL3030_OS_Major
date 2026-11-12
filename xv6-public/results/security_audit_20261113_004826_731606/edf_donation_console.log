@@ -1,0 +1,237 @@
+make: Entering directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'
+/home/tejas/Documents/qemu-master/build/qemu-system-i386 -nographic -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6-EDF_DONATION.img,index=0,media=disk,format=raw -smp 1 -m 512 
+c[?7l[2J[0mSeaBIOS (version rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFD1EC0+1EF31EC0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from Hard Disk..xv6...
+cpu0: starting 0
+sb: size 1200 nblocks 1141 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+init: starting sh
+$ taint_test
+TAINT_TEST PASS trusted_read=clean untainted_unlink=allowed
+PIPE_WAIT reader=3 writer=-1
+TAINT_DENY pid=5 op=unlink
+TAINT_TEST PASS fork_inherits_taint unlink=denied
+PIPE_WRITE writer=5
+PIPE_WAKE reader=3
+TAINT_DENY pid=3 op=unlink
+TAINT_TEST PASS pipe_propagates_taint unlink=denied sentinel=present
+TAINT_TEST COMPLETE
+$ taint_test
+TAINT_TEST PASS trusted_read=clean untainted_unlink=allowed
+PIPE_WAIT reader=6 writer=-1
+TAINT_DENY pid=8 op=unlink
+TAINT_TEST PASS fork_inherits_taint unlink=denied
+PIPE_WRITE writer=8
+PIPE_WAKE reader=6
+TAINT_DENY pid=6 op=unlink
+TAINT_TEST PASS pipe_propagates_taint unlink=denied sentinel=present
+TAINT_TEST COMPLETE
+$ taint_audit_test
+PIPE_WAIT reader=10 writer=-1
+PIPE_WAIT reader=11 writer=-1
+TAINT_AUDIT PASS tainted_regular_file_write
+TAINT_AUDIT PASS tainted_executable_created
+PIPE_WRITE writer=9
+PIPE_WRITE writer=9
+PIPE_WAKE reader=10
+PIPE_WAKE reader=11
+TAINT_DENY pid=10 op=unlink
+TAINT_AUDIT PASS tainted_file_read unlink_denied
+TAINT_DENY pid=11 op=unlink
+TAINT_AUDIT PASS tainted_exec unlink_denied
+TAINT_AUDIT COMPLETE temporary_files=clean
+$ taint_audit_test
+PIPE_WAIT reader=14 writer=-1
+PIPE_WAIT reader=15 writer=-1
+TAINT_AUDIT PASS tainted_regular_file_write
+TAINT_AUDIT PASS tainted_executable_created
+PIPE_WRITE writer=13
+PIPE_WRITE writer=13
+PIPE_WAKE reader=14
+PIPE_WAKE reader=15
+TAINT_DENY pid=15 op=unlink
+TTAINT_DENY pid=14 op=unlink
+AINT_AUDIT PASS tainted_exec unlink_denied
+TAINT_AUDIT PASS tainted_file_read unlink_denied
+TAINT_AUDIT COMPLETE temporary_files=clean
+$ edf_test
+START pid=19 wid=2 deadline=100
+FINISH pid=19 wid=2 deadline=100 work=-21788032
+START pid=20 wid=3 deadline=200
+FINISH pid=20 wid=3 deadline=200 work=-21788032
+START pid=18 wid=1 deadline=300
+FINISH pid=18 wid=1 deadline=300 work=-21788032
+$ pipe_dep_test
+PIPE_WRITE writer=21
+PIPE_WAIT reader=21 writer=-1
+PIPE_WRITE writer=22
+PIPE_WAIT reader=22 writer=21
+PIPE_WAKE reader=21
+PIPE_WRITE writer=21
+PIPE_WAKE reader=22
+pipe_dep_test: success, read A then B
+$ donation_test
+PIPE_WRITE writer=23
+PIPE_WAIT reader=23 writer=-1
+PIPE_WRITE writer=24
+DONATE receiver=23 deadline=100
+PIPE_WAIT reader=24 writer=23
+PIPE_WAKE reader=23
+PIPE_WRITE writer=23
+PIPE_WAKE reader=24
+donation_test: success, read A then B
+$ donation_multi_test
+PIPE_WAIT reader=25 writer=-1
+PIPE_WRITE writer=26
+PIPE_WRITE writer=26
+PIPE_WAIT reader=26 writer=-1
+PIPE_WRITE writer=27
+DONATE receiver=26 deadline=100
+PIPE_WAIT reader=27 writer=26
+PIPE_WAKE reader=25
+PIPE_WAIT reader=25 writer=27
+PIPE_WRITE writer=28
+PIPE_WAIT reader=28 writer=26
+PIPE_WAKE reader=25
+PIPE_WAIT reader=29 writer=-1
+PIPE_WRITE writer=25
+PIPE_WRITE writer=25
+PIPE_WAKE reader=26
+PIPE_WRITE writer=26
+PIPE_WAIT reader=26 writer=-1
+PIPE_WAKE reader=27
+READER_A_EXIT pid=27
+PIPE_WRITE writer=27
+PIPE_WAKE reader=26
+WRITER_AFTER_A pid=26
+PIPE_WAKE reader=28
+READER_C_RELEASED pid=28
+PIPE_WAKE reader=29
+COMPETITOR_RUN pid=29 deadline=250
+donation_multi_test: complete
+$ donation_kill_test
+PIPE_WAIT reader=30 writer=-1
+PIPE_WRITE writer=31
+PIPE_WRITE writer=31
+PIPE_WAIT reader=31 writer=-1
+PIPE_WAKE reader=30
+PIPE_WAIT reader=30 writer=-1
+PIPE_WRITE writer=32
+DONATE receiver=31 deadline=100
+PIPE_WAIT reader=32 writer=31
+PIPE_WAKE reader=30
+DONOR_KILLED pid=32
+PIPE_WAIT reader=30 writer=-1
+PIPE_WRITE writer=33
+PIPE_WAIT reader=33 writer=-1
+PIPE_WAKE reader=30
+PIPE_WRITE writer=30
+PIPE_WRITE writer=30
+PIPE_WAKE reader=33
+COMPETITOR_RUN pid=33 deadline=200
+PIPE_WAKE reader=31
+WRITER_RUN pid=31 deadline=300
+donation_kill_test: complete
+$ donation_cycle_test
+PIPE_WAIT reader=34 writer=-1
+PIPE_WRITE writer=35
+PIPE_WRITE writer=35
+PIPE_WAIT reader=35 writer=-1
+PIPE_WAKE reader=34
+DONATE receiver=35 deadline=250
+PIPE_WAIT reader=34 writer=35
+PIPE_WRITE writer=36
+PIPE_WRITE writer=36
+PIPE_WAIT reader=36 writer=-1
+PIPE_WAKE reader=35
+PIPE_WAIT reader=35 writer=-1
+PIPE_WAKE reader=34
+PIPE_WRITE writer=34
+DONATE receiver=36 deadline=250
+PIPE_WAIT reader=34 writer=36
+PIPE_WAKE reader=36
+CYCLE_B_WAIT pid=36 deadline=200
+PIPE_WRITE writer=36
+DONATE receiver=35 deadline=200
+PIPE_WAIT reader=36 writer=35
+PIPE_WAKE reader=34
+PIPE_WRITE writer=34
+DONATE receiver=36 deadline=250
+PIPE_WAIT reader=34 writer=36
+PIPE_WAKE reader=35
+CYCLE_A_WAIT pid=35 deadline=100
+PIPE_WRITE writer=35
+DONATE receiver=36 deadline=100
+DONATE receiver=35 deadline=100
+PIPE_WAIT reader=35 writer=36
+PIPE_WAKE reader=34
+CYCLE_ESTABLISHED A=35 B=36
+PIPE_WAKE reader=36
+CYCLE_B_RELEASED pid=36
+donation_cycle_test: cleanup complete
+$ sched_bench 2 100000 100 200 300
+PIPE_WAIT reader=37 writer=-1
+PIPE_WRITE writer=38
+PIPE_WRITE writer=38
+PIPE_WAIT reader=38 writer=-1
+PIPE_WAKE reader=37
+PIPE_WAIT reader=37 writer=-1
+PIPE_WRITE writer=39
+PIPE_WAIT reader=39 writer=-1
+PIPE_WAKE reader=37
+PIPE_WAIT reader=37 writer=-1
+PIPE_WRITE writer=40
+PIPE_WRITE writer=40
+PIPE_WAIT reader=40 writer=-1
+PIPE_WAKE reader=37
+PIPE_WAIT reader=37 writer=-1
+PIPE_WRITE writer=41
+PIPE_WAIT reader=41 writer=-1
+PIPE_WAKE reader=37
+PIPE_WAIT reader=37 writer=-1
+PIPE_WRITE writer=42
+PIPE_WRITE writer=42
+PIPE_WAIT reader=42 writer=-1
+PIPE_WAKE reader=37
+PIPE_WAIT reader=37 writer=-1
+PIPE_WRITE writer=43
+PIPE_WAIT reader=43 writer=-1
+PIPE_WAKE reader=37
+PIPE_WRITE writer=37
+PIPE_WRITE writer=37
+PIPE_WRITE writer=37
+PIPE_WRITE writer=37
+PIPE_WRITE writer=37
+PIPE_WRITE writer=37
+PIPE_WAKE reader=38
+PIPE_WAKE reader=39
+PIPE_WAKE reader=40
+PIPE_WAKE reader=41
+PIPE_WAKE reader=42
+PIPE_WAKE reader=43
+DONATE receiver=38 deadline=267
+PIPE_WAIT reader=39 writer=38
+PIPE_WRITE writer=38
+PIPE_WAKE reader=39
+PIPE_WRITE writer=39
+DONATE receiver=40 deadline=367
+PIPE_WAIT reader=41 writer=40
+PIPE_WRITE writer=40
+PIPE_WAKE reader=41
+PIPE_WRITE writer=41
+DONATE receiver=42 deadline=467
+PIPE_WAIT reader=43 writer=42
+PIPE_WRITE writer=42
+PIPE_WAKE reader=43
+PIPE_WRITE writer=43
+BENCH_RESULT wid=1 stages=2 elapsed=0 deadline=100 miss=0
+BENCH_RESULT wid=2 stages=2 elapsed=0 deadline=200 miss=0
+BENCH_RESULT wid=3 stages=2 elapsed=1 deadline=300 miss=0
+BENCH_SUMMARY workflows=3 completed=3 deadline_misses=0
+$ QEMU: Terminated
+make: Leaving directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'

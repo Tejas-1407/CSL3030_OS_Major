@@ -1,0 +1,10 @@
+policy,wid,stages,elapsed_ticks,deadline_ticks,deadline_miss
+RR,1,4,0,100,0
+RR,2,4,1,200,0
+RR,3,4,2,300,0
+EDF,1,4,1,100,0
+EDF,2,4,3,200,0
+EDF,3,4,5,300,0
+EDF_DONATION,1,4,1,100,0
+EDF_DONATION,2,4,4,200,0
+EDF_DONATION,3,4,6,300,0

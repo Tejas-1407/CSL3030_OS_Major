@@ -210,6 +210,52 @@ Current priorities:
 
 ---
 
+## 9. Nemotron Agent
+
+The host-side interactive agent uses NVIDIA's OpenAI-compatible Nemotron API
+to choose among the `list_files`, `read_file`, `summarize`, and `project_info`
+tools. `project_info` returns curated project facts without accessing files.
+Every proposed call goes through `agent.py`'s deterministic dispatcher and then
+the read-only `xv6_tools.py` interface. The model cannot invoke shell commands
+or host processes.
+
+### Setup and launch
+
+From `xv6-public/`, create and activate a virtual environment and install the
+Python dependencies (the project-level `.venv` is normally reused):
+
+```sh
+"$PWD/../.venv/bin/python" -m pip install -r requirements.txt
+./start-agent.sh
+```
+
+The project-root `.env` file is loaded automatically. Replace its placeholder
+with the NVIDIA key locally, or export `NVIDIA_API_KEY` before launch; an
+exported value takes precedence. Do not commit `.env` files. The client uses
+`https://integrate.api.nvidia.com/v1` and model
+`nvidia/nemotron-3.5-lightning-30b-a3b`, with Nemotron thinking disabled.
+Enter `exit` to leave the terminal session.
+
+The model may list files, read one allowed file in the xv6 guest filesystem
+root, summarize supplied text, or request curated OS Major project information
+through `project_info`. Project questions should use `project_info`; guest
+filesystem questions use the xv6 tools. When a filename is explicit, the agent
+reads it directly rather than listing first. ELF executables are identified as
+compiled binaries and are not displayed as source text. Each user request is
+limited to five tool calls. The bridge boots the existing `EDF_DONATION`,
+`CPUS=1` QEMU image only when a guest filesystem tool is requested.
+
+### Trust boundaries and limitations
+
+Nemotron output is untrusted: the model's structured requests are validated by
+the existing dispatcher, and the bridge independently permits only `ls` and
+`cat <single filename>`. xv6 kernel taint checks are a separate enforcement
+layer; a system prompt is not a security boundary. File content can influence
+the model's response or cause it to propose rejected actions, so prompt
+injection resistance is not guaranteed. The service requires network access
+and is subject to NVIDIA API availability, rate limits, and account quotas.
+Automated LLM tests use mocked responses and do not call the service.
+
 ## Team Notes
 
 Add important decisions, experiments, assumptions, and test results to `docs/` as the project develops.

@@ -1,6 +1,7 @@
 import unittest
 
 from agent import Agent, ToolRequestError
+from project_context import PROJECT_CONTEXT
 
 
 class FakeXv6Tools:
@@ -55,6 +56,15 @@ class AgentTests(unittest.TestCase):
             "No text supplied to summarize.",
         )
 
+    def test_project_info_returns_curated_context_without_using_filesystem(self):
+        result = self.agent.dispatch(
+            {"tool": "project_info", "arguments": {}}
+        )
+        self.assertEqual(result, PROJECT_CONTEXT)
+        self.assertIn("EDF_DONATION", result)
+        self.assertIn("single CPUS=1 run", result)
+        self.assertEqual(self.tools.calls, [])
+
     def test_rejects_malformed_requests(self):
         requests = (
             None,
@@ -79,6 +89,8 @@ class AgentTests(unittest.TestCase):
     def test_validates_required_arguments_and_types(self):
         requests = (
             {"tool": "list_files", "arguments": {"path": "README"}},
+            {"tool": "project_info", "arguments": {"path": "README"}},
+            {"tool": "project_info", "arguments": {"command": "ls"}},
             {"tool": "read_file", "arguments": {}},
             {"tool": "read_file", "arguments": {"path": 10}},
             {"tool": "summarize", "arguments": {}},

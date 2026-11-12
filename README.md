@@ -95,6 +95,22 @@ The intended trust boundary is:
 
 The AI agent is **not** intended to replace the xv6 scheduler.
 
+### Launching the Nemotron agent
+
+From `xv6-public/`, install dependencies into the existing project virtual
+environment if needed, then launch the interactive agent:
+
+```sh
+"$PWD/../.venv/bin/python" -m pip install -r requirements.txt
+./start-agent.sh
+```
+
+The launcher reads the project-root `.env` without displaying its contents.
+Replace the `NVIDIA_API_KEY` placeholder locally, or export the variable
+before launch (the exported value takes precedence). The bridge starts QEMU
+only when an xv6 filesystem tool is requested and reports any existing QEMU
+instance using the project disk images rather than terminating it.
+
 ## 4. Development Plan
 
 ### Track A — xv6 / Kernel

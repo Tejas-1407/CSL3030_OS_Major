@@ -21,3 +21,6 @@ kernelmemfs-EDF
 kernelmemfs-EDF_DONATION
 mkfs
 .gdbinit
+/.venv/
+.env
+.env.*

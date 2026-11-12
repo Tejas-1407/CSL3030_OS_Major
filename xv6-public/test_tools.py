@@ -14,6 +14,10 @@ class FakeBridge:
             return "README\ncat\nls"
         if command == "cat README":
             return "xv6 exercise files"
+        if command == "cat inbox.txt":
+            return "The project review is on Friday."
+        if command == "cat pipe_dep_test":
+            return "\x7fELF\x01\x01\x01compiled executable bytes"
         return "sample file"
 
 
@@ -29,6 +33,24 @@ class Xv6ToolsTests(unittest.TestCase):
     def test_read_file_uses_cat(self):
         self.assertEqual(self.tools.read_file("README"), "xv6 exercise files")
         self.assertEqual(self.bridge.commands, ["cat README"])
+
+    def test_read_text_files_preserves_contents(self):
+        self.assertEqual(
+            self.tools.read_file("inbox.txt"),
+            "The project review is on Friday.",
+        )
+        self.assertEqual(self.bridge.commands, ["cat inbox.txt"])
+
+    def test_elf_executable_is_identified_without_displaying_binary(self):
+        self.assertEqual(
+            self.tools.read_file("pipe_dep_test"),
+            (
+                "This is a compiled ELF executable, not a text file. I can "
+                "identify it, but cannot display its contents as readable "
+                "source code."
+            ),
+        )
+        self.assertEqual(self.bridge.commands, ["cat pipe_dep_test"])
 
     def test_rejects_invalid_paths_without_running_commands(self):
         invalid_paths = (

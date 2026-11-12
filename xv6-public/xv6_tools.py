@@ -2,6 +2,11 @@ import re
 
 
 SAFE_XV6_FILENAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
+ELF_MAGIC = "\x7fELF"
+ELF_EXECUTABLE_MESSAGE = (
+    "This is a compiled ELF executable, not a text file. I can identify it, "
+    "but cannot display its contents as readable source code."
+)
 
 
 class Xv6ToolError(ValueError):
@@ -34,4 +39,6 @@ class Xv6Tools:
             raise Xv6ToolError(f"File not found in xv6: {path}")
         if output.startswith("cat: "):
             raise Xv6ToolError(f"xv6 could not read {path}: {output}")
+        if output.startswith(ELF_MAGIC):
+            return ELF_EXECUTABLE_MESSAGE
         return output

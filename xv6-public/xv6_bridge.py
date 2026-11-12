@@ -18,6 +18,67 @@ SHUTDOWN_TIMEOUT_SECONDS = 8
 SAFE_XV6_FILENAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
 
 
+def find_qemu_using_images(image_paths, proc_root=Path("/proc")):
+    """Return (PID, image path) pairs for QEMU processes using these images."""
+    images = {Path(path).resolve(): str(Path(path).resolve()) for path in image_paths}
+    matches = []
+    try:
+        processes = proc_root.iterdir()
+    except OSError:
+        return matches
+
+    for process_dir in processes:
+        if not process_dir.name.isdigit():
+            continue
+        try:
+            arguments = (process_dir / "cmdline").read_bytes().split(b"\0")
+            arguments = [
+                argument.decode("utf-8", errors="replace")
+                for argument in arguments
+                if argument
+            ]
+            if not arguments or not Path(arguments[0]).name.startswith("qemu-system"):
+                continue
+            cwd = Path(os.readlink(process_dir / "cwd"))
+        except (OSError, PermissionError):
+            continue
+
+        disk_arguments = []
+        index = 1
+        while index < len(arguments):
+            argument = arguments[index]
+            if argument in ("-drive", "-hda", "-hdc", "-fda", "-fdb"):
+                if index + 1 < len(arguments):
+                    disk_arguments.append((argument, arguments[index + 1]))
+                    index += 2
+                    continue
+            elif argument.startswith("-drive="):
+                disk_arguments.append(("-drive", argument[len("-drive=") :]))
+            index += 1
+
+        for option, value in disk_arguments:
+            if option == "-drive":
+                file_argument = next(
+                    (
+                        item[5:]
+                        for item in value.split(",")
+                        if item.startswith("file=")
+                    ),
+                    None,
+                )
+                if file_argument is None or file_argument == "none":
+                    continue
+                disk_path = Path(file_argument)
+            else:
+                disk_path = Path(value)
+            if not disk_path.is_absolute():
+                disk_path = cwd / disk_path
+            resolved_path = disk_path.resolve()
+            if resolved_path in images:
+                matches.append((int(process_dir.name), images[resolved_path]))
+    return matches
+
+
 class Xv6BridgeError(RuntimeError):
     pass
 
@@ -31,6 +92,18 @@ class Xv6Bridge:
     def start(self):
         if self._process is not None:
             raise Xv6BridgeError("The xv6 bridge has already been started")
+        disk_images = (
+            PROJECT_DIR / "fs.img",
+            PROJECT_DIR / f"xv6-{POLICY}.img",
+        )
+        existing = find_qemu_using_images(disk_images)
+        if existing:
+            pids = ", ".join(str(pid) for pid in sorted({pid for pid, _ in existing}))
+            raise Xv6BridgeError(
+                "A QEMU instance is already using this xv6 disk image "
+                f"(PID {pids}). Close it from its owning terminal with "
+                "Ctrl-A, then X, or stop that specific process before retrying."
+            )
         if not QEMU.is_file():
             raise Xv6BridgeError(f"QEMU executable not found: {QEMU}")
 
@@ -55,11 +128,14 @@ class Xv6Bridge:
         except OSError as exc:
             raise Xv6BridgeError(f"Could not start make/QEMU: {exc}") from exc
 
-        self._selector = selectors.DefaultSelector()
-        self._selector.register(self._process.stdout, selectors.EVENT_READ)
         try:
+            self._selector = selectors.DefaultSelector()
+            self._selector.register(self._process.stdout, selectors.EVENT_READ)
             self._read_until_prompt(START_TIMEOUT_SECONDS, "xv6 shell prompt")
         except Xv6BridgeError:
+            self.close()
+            raise
+        except Exception:
             self.close()
             raise
         return self
@@ -78,6 +154,11 @@ class Xv6Bridge:
             raise ValueError(
                 "Only 'ls' and 'cat <single xv6 filename>' are allowed"
             )
+        if self._process is None:
+            self.start()
+        elif self._process.poll() is not None:
+            self.close()
+            self.start()
         if self._process is None or self._process.poll() is not None:
             raise Xv6BridgeError("xv6 is not running; call start() first")
 
@@ -144,31 +225,33 @@ class Xv6Bridge:
         if process is None:
             return
 
-        if process.poll() is None:
-            try:
-                process.stdin.write(b"\x01x")
-                process.stdin.flush()
-                process.stdin.close()
-            except (BrokenPipeError, OSError):
-                self._stop_process_group(process, signal.SIGTERM)
-            try:
-                process.wait(timeout=SHUTDOWN_TIMEOUT_SECONDS)
-            except subprocess.TimeoutExpired:
-                self._stop_process_group(process, signal.SIGTERM)
+        try:
+            if process.poll() is None:
                 try:
-                    process.wait(timeout=3)
+                    process.stdin.write(b"\x01x")
+                    process.stdin.flush()
+                    process.stdin.close()
+                except (BrokenPipeError, OSError):
+                    self._stop_process_group(process, signal.SIGTERM)
+                try:
+                    process.wait(timeout=SHUTDOWN_TIMEOUT_SECONDS)
                 except subprocess.TimeoutExpired:
-                    self._stop_process_group(process, signal.SIGKILL)
-                    process.wait()
-
-        if self._selector is not None:
-            self._selector.close()
-            self._selector = None
-        if process.stdin and not process.stdin.closed:
-            process.stdin.close()
-        if process.stdout:
-            process.stdout.close()
-        self._process = None
+                    self._stop_process_group(process, signal.SIGTERM)
+                    try:
+                        process.wait(timeout=3)
+                    except subprocess.TimeoutExpired:
+                        self._stop_process_group(process, signal.SIGKILL)
+                        process.wait()
+        finally:
+            if self._selector is not None:
+                self._selector.close()
+                self._selector = None
+            if process.stdin and not process.stdin.closed:
+                process.stdin.close()
+            if process.stdout:
+                process.stdout.close()
+            if process.poll() is not None:
+                self._process = None
 
     @staticmethod
     def _stop_process_group(process, sig):
@@ -178,7 +261,7 @@ class Xv6Bridge:
             pass
 
     def __enter__(self):
-        return self.start()
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()

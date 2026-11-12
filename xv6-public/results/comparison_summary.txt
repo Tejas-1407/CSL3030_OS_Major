@@ -1,0 +1,5 @@
+Workload: sched_bench 4 100000 100 200 300; CPUS=1; repetitions=1
+Policy          Completed workflows    Deadline misses    Status
+RR              3                      0                  success
+EDF             3                      0                  success
+EDF_DONATION    3                      0                  success

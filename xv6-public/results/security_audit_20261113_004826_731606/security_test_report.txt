@@ -1,0 +1,52 @@
+xv6 taint security and regression test report
+CPUS=1; each policy used an independent QEMU session.
+File-label regression: kernel keeps volatile taint labels in a runtime inode-number map,
+so labels survive inode-cache eviction; no on-disk inode or disk-layout changes.
+
+RR: FAIL; console=rr_console.log
+  PASS taint_test: expected completion markers observed
+  PASS taint_test: expected completion markers observed
+  PASS taint_audit_test: expected completion markers observed
+  PASS taint_audit_test: expected completion markers observed
+  FAIL edf_test: missing: three START and three FINISH markers
+  PASS pipe_dep_test: expected completion markers observed
+  PASS donation_test: expected completion markers observed
+  PASS donation_multi_test: expected completion markers observed
+  PASS donation_kill_test: expected completion markers observed
+  PASS donation_cycle_test: expected completion markers observed
+  PASS sched_bench 2 100000 100 200 300: expected completion markers observed
+  ERROR edf_test: missing: three START and three FINISH markers
+
+EDF: PASS; console=edf_console.log
+  PASS taint_test: expected completion markers observed
+  PASS taint_test: expected completion markers observed
+  PASS taint_audit_test: expected completion markers observed
+  PASS taint_audit_test: expected completion markers observed
+  PASS edf_test: expected completion markers observed
+  PASS pipe_dep_test: expected completion markers observed
+  PASS donation_test: expected completion markers observed
+  PASS donation_multi_test: expected completion markers observed
+  PASS donation_kill_test: expected completion markers observed
+  PASS donation_cycle_test: expected completion markers observed
+  PASS sched_bench 2 100000 100 200 300: expected completion markers observed
+
+EDF_DONATION: FAIL; console=edf_donation_console.log
+  PASS taint_test: expected completion markers observed
+  PASS taint_test: expected completion markers observed
+  PASS taint_audit_test: expected completion markers observed
+  FAIL taint_audit_test: missing: TAINT_AUDIT PASS tainted_exec unlink_denied
+  PASS edf_test: expected completion markers observed
+  PASS pipe_dep_test: expected completion markers observed
+  PASS donation_test: expected completion markers observed
+  PASS donation_multi_test: expected completion markers observed
+  PASS donation_kill_test: expected completion markers observed
+  PASS donation_cycle_test: expected completion markers observed
+  PASS sched_bench 2 100000 100 200 300: expected completion markers observed
+  ERROR taint_audit_test: missing: TAINT_AUDIT PASS tainted_exec unlink_denied
+
+Coverage exercised: trusted reads, inbox taint, fork and pipe propagation,
+tainted regular-file write/read, tainted executable propagation, direct kernel unlink
+denial, untainted unlink, process cleanup/reuse via repeated tests, scheduler and
+pipe-donation regressions, and a small benchmark.
+Limitations: this validates the exercised channels only; it is not a comprehensive
+security proof and does not cover every IPC, filesystem, or kernel data path.

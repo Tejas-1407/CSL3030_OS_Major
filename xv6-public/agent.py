@@ -1,5 +1,6 @@
 import re
 
+from project_context import PROJECT_CONTEXT
 from xv6_tools import Xv6Tools
 
 
@@ -36,6 +37,9 @@ class Agent:
         if tool == "summarize":
             self._validate_arguments(tool, arguments, {"text": str})
             return self._summarize(arguments["text"])
+        if tool == "project_info":
+            self._validate_arguments(tool, arguments, {})
+            return PROJECT_CONTEXT
         raise ToolRequestError(f"Unknown tool: {tool}")
 
     @staticmethod
