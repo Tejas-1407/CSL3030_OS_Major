@@ -338,9 +338,11 @@ void
 scheduler(void)
 {
   struct proc *p;
+#if !defined(SCHED_POLICY_RR)
   struct proc *best;
   uint deadline;
   uint best_deadline;
+#endif
   struct cpu *c = mycpu();
   c->proc = 0;
   
@@ -348,6 +350,29 @@ scheduler(void)
     // Enable interrupts on this processor.
     sti();
 
+#if defined(SCHED_POLICY_RR)
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state != RUNNABLE)
+        continue;
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = p;
+      switchuvm(p);
+      p->state = RUNNING;
+
+      swtch(&(c->scheduler), p->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+    }
+    release(&ptable.lock);
+#else
     // Find the runnable process with the earliest deadline.
     acquire(&ptable.lock);
     best = 0;
@@ -355,7 +380,11 @@ scheduler(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
+#if defined(SCHED_POLICY_EDF)
+      deadline = p->deadline;
+#else
       deadline = p->deadline < p->donated ? p->deadline : p->donated;
+#endif
       if(best == 0 || deadline < best_deadline){
         best = p;
         best_deadline = deadline;
@@ -378,6 +407,7 @@ scheduler(void)
       c->proc = 0;
     }
     release(&ptable.lock);
+#endif
   }
 }
 

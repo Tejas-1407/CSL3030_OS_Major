@@ -13,5 +13,11 @@ initcode
 initcode.out
 kernel
 kernelmemfs
+kernel-RR
+kernel-EDF
+kernel-EDF_DONATION
+kernelmemfs-RR
+kernelmemfs-EDF
+kernelmemfs-EDF_DONATION
 mkfs
 .gdbinit

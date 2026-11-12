@@ -1,0 +1,266 @@
+make: Entering directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'
+/home/tejas/Documents/qemu-master/build/qemu-system-i386 -nographic -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6-RR.img,index=0,media=disk,format=raw -smp 1 -m 512 
+c[?7l[2J[0mSeaBIOS (version rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFD1EC0+1EF31EC0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from Hard Disk..xv6...
+cpu0: starting 0
+sb: size 1200 nblocks 1141 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+init: starting sh
+$ sched_bench 8 1000000 100 200 300
+PIPE_WRITE writer=4
+PIPE_WRITE writer=4
+PIPE_WAIT reader=4 writer=-1
+PIPE_WRITE writer=5
+PIPE_WRITE writer=5
+PIPE_WAIT reader=5 writer=-1
+PIPE_WRITE writer=6
+PIPE_WRITE writer=6
+PIPE_WAIT reader=6 writer=-1
+PIPE_WRITE writer=7
+PIPE_WRITE writer=7
+PIPE_WAIT reader=7 writer=-1
+PIPE_WRITE writer=8
+PIPE_WRITE writer=8
+PIPE_WAIT reader=8 writer=-1
+PIPE_WRITE writer=9
+PIPE_WRITE writer=9
+PIPE_WAIT reader=9 writer=-1
+PIPE_WAIT reader=11 writer=-1
+PIPE_WRITE writer=10
+PIPE_WRITE writer=10
+PIPE_WAIT reader=10 writer=-1
+PIPE_WAKE reader=11
+PIPE_WRITE writer=11
+PIPE_WAIT reader=11 writer=-1
+PIPE_WRITE writer=12
+PIPE_WRITE writer=12
+PIPE_WRITE writer=13
+PIPE_WRITE writer=13
+PIPE_WAIT reader=13 writer=-1
+PIPE_WRITE writer=14
+PIPE_WRITE writer=14
+PIPE_WAIT reader=14 writer=-1
+PIPE_WAIT reader=16 writer=-1
+PIPE_WAIT reader=12 writer=-1
+PIPE_WRITE writer=15
+PIPE_WRITE writer=15
+PIPE_WAIT reader=15 writer=-1
+PIPE_WAKE reader=16
+PIPE_WRITE writer=16
+PIPE_WRITE writer=17
+PIPE_WRITE writer=17
+PIPE_WAIT reader=17 writer=-1
+PIPE_WRITE writer=18
+PIPE_WRITE writer=18
+PIPE_WAIT reader=18 writer=-1
+PIPE_WRITE writer=20
+PIPE_WRITE writer=20
+PIPE_WAIT reader=20 writer=-1
+PIPE_WRITE writer=16
+PIPE_WAIT reader=16 writer=-1
+PIPE_WRITE writer=19
+PIPE_WAIT reader=19 writer=-1
+PIPE_WRITE writer=21
+PIPE_WRITE writer=21
+PIPE_WAIT reader=3 writer=21
+PIPE_WRITE writer=22
+PIPE_WRITE writer=22
+PIPE_WAIT reader=22 writer=-1
+PIPE_WRITE writer=23
+PIPE_WRITE writer=23
+PIPE_WAIT reader=23 writer=-1
+PIPE_WRITE writer=24
+PIPE_WRITE writer=24
+PIPE_WRITE writer=25
+PIPE_WRITE writer=25
+PIPE_WAIT reader=25 writer=-1
+PIPE_WRITE writer=26
+PIPE_WRITE writer=26
+PIPE_WAIT reader=26 writer=-1
+PIPE_WRITE writer=27
+PIPE_WAIT reader=27 writer=-1
+PIPE_WAKE reader=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WAKE reader=4
+PIPE_WAKE reader=5
+PIPE_WAKE reader=6
+PIPE_WAKE reader=7
+PIPE_WAKE reader=8
+PIPE_WAKE reader=9
+PIPE_WAKE reader=10
+PIPE_WAIT reader=11 writer=3
+PIPE_WAIT reader=13 writer=3
+PIPE_WAIT reader=14 writer=3
+PIPE_WAIT reader=15 writer=3
+PIPE_WAIT reader=16 writer=3
+PIPE_WAIT reader=17 writer=3
+PIPE_WAIT reader=18 writer=3
+PIPE_WAIT reader=19 writer=3
+PIPE_WAIT reader=20 writer=3
+PIPE_WAIT reader=21 writer=3
+PIPE_WAIT reader=23 writer=3
+PIPE_WAIT reader=24 writer=3
+PIPE_WAIT reader=25 writer=3
+PIPE_WAIT reader=26 writer=3
+PIPE_WAIT reader=27 writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WAKE reader=11
+PIPE_WAKE reader=12
+PIPE_WAKE reader=13
+PIPE_WAKE reader=14
+PIPE_WAIT reader=15 writer=3
+PIPE_WAIT reader=16 writer=3
+PIPE_WAIT reader=17 writer=3
+PIPE_WAIT reader=19 writer=3
+PIPE_WAIT reader=20 writer=3
+PIPE_WAIT reader=21 writer=3
+PIPE_WAIT reader=22 writer=3
+PIPE_WAIT reader=23 writer=3
+PIPE_WAIT reader=24 writer=3
+PIPE_WAIT reader=25 writer=3
+PIPE_WAIT reader=26 writer=3
+PIPE_WAIT reader=27 writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WAKE reader=15
+PIPE_WAKE reader=16
+PIPE_WAKE reader=17
+PIPE_WAKE reader=18
+PIPE_WAKE reader=19
+PIPE_WAKE reader=20
+PIPE_WAIT reader=21 writer=3
+PIPE_WAIT reader=22 writer=3
+PIPE_WAIT reader=23 writer=3
+PIPE_WAIT reader=24 writer=3
+PIPE_WAIT reader=25 writer=3
+PIPE_WAIT reader=26 writer=3
+PIPE_WAIT reader=27 writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WAKE reader=22
+PIPE_WAKE reader=23
+PIPE_WAKE reader=24
+PIPE_WAKE reader=25
+PIPE_WAKE reader=26
+PIPE_WAKE reader=27
+PIPE_WAKE reader=21
+PIPE_WRITE writer=4
+PIPE_WRITE writer=5
+DONATE receiver=6 deadline=142
+PIPE_WAIT reader=7 writer=6
+DONATE receiver=7 deadline=141
+DONATE receiver=6 deadline=141
+PIPE_WAIT reader=8 writer=7
+DONATE receiver=8 deadline=140
+DONATE receiver=7 deadline=140
+DONATE receiver=6 deadline=140
+PIPE_WAIT reader=9 writer=8
+DONATE receiver=9 deadline=139
+DONATE receiver=8 deadline=139
+DONATE receiver=7 deadline=139
+DONATE receiver=6 deadline=139
+PIPE_WAIT reader=10 writer=9
+PIPE_WRITE writer=12
+DONATE receiver=13 deadline=243
+PIPE_WAIT reader=14 writer=13
+DONATE receiver=14 deadline=242
+DONATE receiver=13 deadline=242
+PIPE_WAIT reader=15 writer=14
+DONATE receiver=15 deadline=241
+DONATE receiver=14 deadline=241
+DONATE receiver=13 deadline=241
+PIPE_WAIT reader=16 writer=15
+DONATE receiver=17 deadline=239
+PIPE_WAIT reader=18 writer=17
+DONATE receiver=18 deadline=238
+DONATE receiver=17 deadline=238
+PIPE_WAIT reader=19 writer=18
+DONATE receiver=20 deadline=344
+PIPE_WAIT reader=21 writer=20
+DONATE receiver=21 deadline=343
+DONATE receiver=20 deadline=343
+PIPE_WAIT reader=22 writer=21
+DONATE receiver=22 deadline=342
+DONATE receiver=21 deadline=342
+DONATE receiver=20 deadline=342
+PIPE_WAIT reader=23 writer=22
+DONATE receiver=23 deadline=341
+DONATE receiver=22 deadline=341
+DONATE receiver=21 deadline=341
+DONATE receiver=20 deadline=341
+PIPE_WAIT reader=24 writer=23
+DONATE receiver=25 deadline=339
+PIPE_WAIT reader=26 writer=25
+DONATE receiver=26 deadline=338
+DONATE receiver=25 deadline=338
+PIPE_WAIT reader=27 writer=26
+PIPE_WRITE writer=6
+PIPE_WAKE reader=7
+PIPE_WRITE writer=7
+PIPE_WAKE reader=8
+DONATE receiver=10 deadline=138
+DONATE receiver=9 deadline=138
+DONATE receiver=8 deadline=138
+PIPE_WAIT reader=11 writer=10
+PIPE_WRITE writer=13
+PIPE_WAKE reader=14
+PIPE_WRITE writer=14
+PIPE_WAKE reader=15
+PIPE_WRITE writer=15
+PIPE_WAKE reader=16
+PIPE_WRITE writer=16
+PIPE_WRITE writer=20
+PIPE_WAKE reader=21
+PIPE_WRITE writer=21
+PIPE_WAKE reader=22
+PIPE_WRITE writer=22
+PIPE_WAKE reader=23
+PIPE_WRITE writer=23
+PIPE_WAKE reader=24
+PIPE_WRITE writer=24
+PIPE_WRITE writer=8
+PIPE_WAKE reader=9
+PIPE_WRITE writer=9
+PIPE_WAKE reader=10
+PIPE_WRITE writer=10
+PIPE_WAKE reader=11
+PIPE_WRITE writer=11
+PIPE_WRITE writer=17
+PIPE_WAKE reader=18
+PIPE_WRITE writer=25
+PIPE_WAKE reader=26
+PIPE_WRITE writer=26
+PIPE_WAKE reader=27
+PIPE_WRITE writer=18
+PIPE_WAKE reader=19
+PIPE_WRITE writer=19
+PIPE_WRITE writer=27
+BENCH_RESULT wid=1 stages=8 elapsed=14 deadline=100 miss=0
+BENCH_RESULT wid=2 stages=8 elapsed=17 deadline=200 miss=0
+BENCH_RESULT wid=3 stages=8 elapsed=17 deadline=300 miss=0
+BENCH_SUMMARY workflows=3 completed=3 deadline_misses=0
+QEMU: Terminated
+make: Leaving directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'

@@ -1,3 +1,34 @@
+SCHED_POLICY ?= EDF_DONATION
+SCHED_POLICIES = RR EDF EDF_DONATION
+
+ifeq ($(SCHED_POLICY),RR)
+SCHED_POLICY_CPPFLAG = -DSCHED_POLICY_RR
+else ifeq ($(SCHED_POLICY),EDF)
+SCHED_POLICY_CPPFLAG = -DSCHED_POLICY_EDF
+else ifeq ($(SCHED_POLICY),EDF_DONATION)
+SCHED_POLICY_CPPFLAG = -DSCHED_POLICY_EDF_DONATION
+else
+$(error Unsupported SCHED_POLICY '$(SCHED_POLICY)'. Choose RR, EDF, or EDF_DONATION)
+endif
+
+PROC_OBJ = proc-$(SCHED_POLICY).o
+KERNEL = kernel-$(SCHED_POLICY)
+XV6_IMG = xv6-$(SCHED_POLICY).img
+KERNELMEMFS = kernelmemfs-$(SCHED_POLICY)
+XV6MEMFS_IMG = xv6memfs-$(SCHED_POLICY).img
+BOCHS_CONFIG = dot-bochsrc-$(SCHED_POLICY)
+POLICY_PROC_OBJS = $(foreach policy,$(SCHED_POLICIES),proc-$(policy).o)
+POLICY_KERNELS = $(foreach policy,$(SCHED_POLICIES),kernel-$(policy))
+POLICY_XV6_IMAGES = $(foreach policy,$(SCHED_POLICIES),xv6-$(policy).img)
+POLICY_MEMFS_KERNELS = $(foreach policy,$(SCHED_POLICIES),kernelmemfs-$(policy))
+POLICY_MEMFS_IMAGES = $(foreach policy,$(SCHED_POLICIES),xv6memfs-$(policy).img)
+POLICY_BOCHS_CONFIGS = $(foreach policy,$(SCHED_POLICIES),dot-bochsrc-$(policy))
+
+.DEFAULT_GOAL := all
+.PHONY: all kernel kernelmemfs xv6.img
+
+all: $(XV6_IMG)
+
 OBJS = \
 	bio.o\
 	console.o\
@@ -14,7 +45,7 @@ OBJS = \
 	mp.o\
 	picirq.o\
 	pipe.o\
-	proc.o\
+	$(PROC_OBJ)\
 	sleeplock.o\
 	spinlock.o\
 	string.o\
@@ -90,10 +121,13 @@ ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
 
-xv6.img: bootblock kernel
-	dd if=/dev/zero of=xv6.img count=10000
-	dd if=bootblock of=xv6.img conv=notrunc
-	dd if=kernel of=xv6.img seek=1 conv=notrunc
+$(XV6_IMG): bootblock $(KERNEL)
+	dd if=/dev/zero of=$@ count=10000
+	dd if=bootblock of=$@ conv=notrunc
+	dd if=$(KERNEL) of=$@ seek=1 conv=notrunc
+
+xv6.img: $(XV6_IMG)
+	cp $(XV6_IMG) $@
 
 xv6memfs.img: bootblock kernelmemfs
 	dd if=/dev/zero of=xv6memfs.img count=10000
@@ -120,10 +154,15 @@ initcode: initcode.S
 	$(OBJCOPY) -S -O binary initcode.out initcode
 	$(OBJDUMP) -S initcode.o > initcode.asm
 
-kernel: $(OBJS) entry.o entryother initcode kernel.ld
-	$(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o $(OBJS) -b binary initcode entryother
-	$(OBJDUMP) -S kernel > kernel.asm
-	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
+$(PROC_OBJ): proc.c
+	$(CC) $(CFLAGS) $(SCHED_POLICY_CPPFLAG) -c -o $@ $<
+
+$(KERNEL): $(OBJS) entry.o entryother initcode kernel.ld
+	$(LD) $(LDFLAGS) -T kernel.ld -o $@ entry.o $(OBJS) -b binary initcode entryother
+	$(OBJDUMP) -S $@ > $@.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym
+
+kernel: $(KERNEL)
 
 # kernelmemfs is a copy of kernel that maintains the
 # disk image in memory instead of writing to a disk.
@@ -132,10 +171,17 @@ kernel: $(OBJS) entry.o entryother initcode kernel.ld
 # great for testing the kernel on real hardware without
 # needing a scratch disk.
 MEMFSOBJS = $(filter-out ide.o,$(OBJS)) memide.o
-kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode kernel.ld fs.img
-	$(LD) $(LDFLAGS) -T kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother fs.img
-	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
-	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
+$(KERNELMEMFS): $(MEMFSOBJS) entry.o entryother initcode kernel.ld fs.img
+	$(LD) $(LDFLAGS) -T kernel.ld -o $@ entry.o  $(MEMFSOBJS) -b binary initcode entryother fs.img
+	$(OBJDUMP) -S $@ > $@.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $@.sym
+
+kernelmemfs: $(KERNELMEMFS)
+
+$(XV6MEMFS_IMG): bootblock $(KERNELMEMFS)
+	dd if=/dev/zero of=$@ count=10000
+	dd if=bootblock of=$@ conv=notrunc
+	dd if=$(KERNELMEMFS) of=$@ seek=1 conv=notrunc
 
 tags: $(OBJS) entryother.S _init
 	etags *.S *.c
@@ -189,7 +235,8 @@ UPROGS=\
 	_donation_test\
 	_donation_multi_test\
 	_donation_kill_test\
-	_donation_cycle_test
+	_donation_cycle_test\
+	_sched_bench
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -200,7 +247,9 @@ clean:
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
-	xv6memfs.img mkfs .gdbinit \
+	xv6memfs.img $(POLICY_PROC_OBJS) $(POLICY_KERNELS) \
+	$(POLICY_XV6_IMAGES) $(POLICY_MEMFS_KERNELS) \
+	$(POLICY_MEMFS_IMAGES) $(POLICY_BOCHS_CONFIGS) mkfs .gdbinit \
 	$(UPROGS)
 
 # make a printout
@@ -215,9 +264,11 @@ print: xv6.pdf
 
 # run in emulators
 
-bochs : fs.img xv6.img
-	if [ ! -e .bochsrc ]; then ln -s dot-bochsrc .bochsrc; fi
-	bochs -q
+$(BOCHS_CONFIG): dot-bochsrc
+	sed 's|path="xv6.img"|path="$(XV6_IMG)"|' $< > $@
+
+bochs : fs.img $(XV6_IMG) $(BOCHS_CONFIG)
+	bochs -q -f $(BOCHS_CONFIG)
 
 # try to generate a unique GDB port
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
@@ -228,25 +279,25 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 2
 endif
-QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
+QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=$(XV6_IMG),index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
 
-qemu: fs.img xv6.img
+qemu: fs.img $(XV6_IMG)
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
-qemu-memfs: xv6memfs.img
-	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
+qemu-memfs: $(XV6MEMFS_IMG)
+	$(QEMU) -drive file=$(XV6MEMFS_IMG),index=0,media=disk,format=raw -smp $(CPUS) -m 256
 
-qemu-nox: fs.img xv6.img
+qemu-nox: fs.img $(XV6_IMG)
 	$(QEMU) -nographic $(QEMUOPTS)
 
 .gdbinit: .gdbinit.tmpl
 	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
 
-qemu-gdb: fs.img xv6.img .gdbinit
+qemu-gdb: fs.img $(XV6_IMG) .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 
-qemu-nox-gdb: fs.img xv6.img .gdbinit
+qemu-nox-gdb: fs.img $(XV6_IMG) .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
 
