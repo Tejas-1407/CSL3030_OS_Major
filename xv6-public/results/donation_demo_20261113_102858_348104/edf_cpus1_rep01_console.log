@@ -1,0 +1,65 @@
+make: Entering directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'
+gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o donation_pipeline_test.o donation_pipeline_test.c
+ld -m    elf_i386 -N -e main -Ttext 0 -o _donation_pipeline_test donation_pipeline_test.o ulib.o usys.o printf.o umalloc.o
+ld: warning: _donation_pipeline_test has a LOAD segment with RWX permissions
+objdump -S _donation_pipeline_test > donation_pipeline_test.asm
+objdump -t _donation_pipeline_test | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > donation_pipeline_test.sym
+./mkfs fs.img README inbox.txt important.txt _cat _echo _forktest _grep _init _kill _ln _ls _mkdir _rm _sh _stressfs _usertests _wc _zombie _mytest _hello_test _add_test _edf_test _pipe_dep_test _donation_test _donation_multi_test _donation_kill_test _donation_cycle_test _donation_pipeline_test _taint_test _taint_audit_test _taint_probe _sched_bench
+nmeta 59 (boot, super, log blocks 30 inode blocks 26, bitmap blocks 1) blocks 1141 total 1200
+balloc: first 1181 blocks have been allocated
+balloc: write bitmap block at sector 58
+/home/tejas/Documents/qemu-master/build/qemu-system-i386 -nographic -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6-EDF.img,index=0,media=disk,format=raw -smp 1 -m 512 
+c[?7l[2J[0mSeaBIOS (version rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFD1EC0+1EF31EC0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from Hard Disk..xv6...
+cpu0: starting 0
+sb: size 1200 nblocks 1141 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+init: starting sh
+$ donation_pipeline_test
+PIPELINE_STAGE stage=1 pid=4 deadline=605
+PIPE_WRITE writer=4 pipe=8dfbc000
+PIPE_WRITE writer=4 pipe=8dfc0000
+PIPE_WAKE reader=3
+PIPELINE_STAGE stage=2 pid=5 deadline=505
+PIPE_WRITE writer=5 pipe=8df76000
+PIPE_WRITE writer=5 pipe=8dfc0000
+DONATION donor=5 pipe=8dfbc000 receiver=4 deadline=505
+DONATE receiver=4 deadline=505
+PIPE_WAKE reader=3
+PIPELINE_STAGE stage=3 pid=6 deadline=405
+PIPE_WRITE writer=6 pipe=8dfbf000
+PIPE_WRITE writer=6 pipe=8dfc0000
+DONATION donor=6 pipe=8df76000 receiver=5 deadline=405
+DONATE receiver=5 deadline=405
+DONATE receiver=4 deadline=405
+PIPE_WAKE reader=3
+PIPELINE_STAGE stage=4 pid=7 deadline=205
+PIPE_WRITE writer=7 pipe=8dfc0000
+DONATION donor=7 pipe=8dfbf000 receiver=6 deadline=205
+DONATE receiver=6 deadline=205
+DONATE receiver=5 deadline=205
+DONATE receiver=4 deadline=205
+PIPE_WAKE reader=3
+PIPELINE_HOG pid=8 deadline=255
+PIPE_WRITE writer=8 pipe=8dfc0000
+PIPE_WAKE reader=3
+PIPE_WRITE writer=3 pipe=8dfc1000
+PIPE_WRITE writer=3 pipe=8dfc1000
+PIPE_WAKE reader=8
+PIPE_WAKE reader=4
+PIPE_WRITE writer=4 pipe=8dfbc000
+PIPE_WAKE reader=5
+PIPE_WRITE writer=5 pipe=8df76000
+PIPE_WAKE reader=6
+PIPE_WRITE writer=6 pipe=8dfbf000
+PIPE_WAKE reader=7
+PIPE_WRITE writer=7 pipe=8dfc0000
+BENCH_RESULT wid=1 stages=4 elapsed=150 deadline=100 miss=1
+BENCH_SUMMARY workflows=1 completed=1 deadline_misses=1
+QEMU: Terminated
+make: Leaving directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'

@@ -158,10 +158,7 @@ piperead(struct pipe *p, char *addr, int n)
       release(&p->lock);
       return -1;
     }
-    set_waiting_on(reader, p->writer);
-    // PIPE DEPENDENCY DEBUG: remove after validation.
-    cprintf("PIPE_WAIT reader=%d writer=%d\n", reader->pid,
-            p->writer ? p->writer->pid : -1);
+    set_waiting_on(reader, p->writer, p);
     waited = 1;
     sleep(&p->nread, &p->lock); //DOC: piperead-sleep
   }

@@ -1,0 +1,7 @@
+Four-stage pipe workflow plus unrelated CPU hog; CPUS=1; repetitions=1
+EDF: status=failed/incomplete completed=1 elapsed_ticks=151 deadline_misses=1 donation_events=3 stage_pids=stage1=4;stage2=5;stage3=6;stage4=7 hog_pid=8
+  donor=5,pipe=8dfbc000,receiver=4,deadline=505;donor=6,pipe=8df76000,receiver=5,deadline=405;donor=7,pipe=8dfbf000,receiver=6,deadline=205
+  errors=expected one result for workflow IDs 1, 2, and 3; received 1
+EDF_DONATION: status=failed/incomplete completed=1 elapsed_ticks= deadline_misses=0 donation_events=3 stage_pids=stage1=4;stage2=5;stage3=6;stage4=7 hog_pid=8
+  donor=5,pipe=8dfbc000,receiver=4,deadline=504;donor=6,pipe=8df76000,receiver=5,deadline=404;donor=7,pipe=8dfbf000,receiver=6,deadline=204
+  errors=expected 1 BENCH_RESULT lines, received 0

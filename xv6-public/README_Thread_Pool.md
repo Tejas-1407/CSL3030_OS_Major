@@ -256,6 +256,30 @@ injection resistance is not guaranteed. The service requires network access
 and is subject to NVIDIA API availability, rate limits, and account quotas.
 Automated LLM tests use mocked responses and do not call the service.
 
+## 10. Scheduler Evaluation
+
+Run the Low, Medium, and High scheduler workloads with three workflows per
+run. The harness defaults to 20 repetitions per policy and CPUS=1; choose
+`--cpus 3` for the three-CPU run. Select policies with `--policies`:
+
+```sh
+python3 run_benchmarks.py --cpus 1 --repetitions 20
+python3 run_benchmarks.py --cpus 3 --repetitions 20
+```
+
+Each invocation creates a timestamped directory under `results/`, preserving
+each QEMU console, per-workflow CSV measurements, and a summary grouped by CPU
+count, policy, and workload. The focused four-stage pipe workflow with an
+unrelated CPU hog can be compared separately:
+
+```sh
+python3 run_donation_demo.py --cpus 1
+```
+
+The donation demonstration records measured completion/miss data and the
+kernel's donor, pipe, and receiver diagnostics. It does not imply a performance
+result until run; the logs and CSV are the evidence for each invocation.
+
 ## Team Notes
 
 Add important decisions, experiments, assumptions, and test results to `docs/` as the project develops.

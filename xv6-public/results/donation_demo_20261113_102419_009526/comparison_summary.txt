@@ -1,0 +1,7 @@
+Four-stage pipe workflow plus unrelated CPU hog; CPUS=1; repetitions=1
+EDF: status=failed/incomplete completed=0 elapsed_ticks= deadline_misses= donation_events=0 stage_pids= hog_pid=
+  
+  errors=Timed out waiting for benchmark summary; benchmark summary was not received; expected 1 BENCH_RESULT lines, received 0; expected PIDs for 4 pipeline stages, received 0; CPU hog PID/deadline marker was not received; no donor/pipe/receiver donation event was received
+EDF_DONATION: status=failed/incomplete completed=0 elapsed_ticks= deadline_misses= donation_events=0 stage_pids= hog_pid=
+  
+  errors=Timed out waiting for benchmark summary; benchmark summary was not received; expected 1 BENCH_RESULT lines, received 0; expected PIDs for 4 pipeline stages, received 0; CPU hog PID/deadline marker was not received; no donor/pipe/receiver donation event was received

@@ -1,0 +1,11 @@
+Workload comparison; CPUS=1; deadlines=100,200,300 ticks
+Policy          Configuration    Stages    CPU work    Completed workflows    Deadline misses    Status
+RR              Low              2        100000      3                      0                  success
+RR              Medium           4        500000      3                      0                  success
+RR              High             8        1000000     3                      0                  success
+EDF             Low              2        100000      3                      0                  success
+EDF             Medium           4        500000      3                      0                  success
+EDF             High             8        1000000     3                      0                  success
+EDF_DONATION    Low              2        100000      3                      0                  success
+EDF_DONATION    Medium           4        500000      3                      0                  success
+EDF_DONATION    High             8        1000000     3                      0                  success

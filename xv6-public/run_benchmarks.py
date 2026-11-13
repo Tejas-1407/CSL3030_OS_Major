@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import csv
 import os
 import re
@@ -22,6 +23,7 @@ CONFIGURATIONS = (
 )
 DEADLINES = (100, 200, 300)
 CPUS = 1
+DEFAULT_REPETITIONS = 20
 START_TIMEOUT_SECONDS = 45
 RUN_TIMEOUT_SECONDS = 90
 SHUTDOWN_TIMEOUT_SECONDS = 8
@@ -67,7 +69,14 @@ def drain_output(proc, selector, output, timeout):
                 output.extend(chunk)
 
 
-def run_policy(policy, workload, stages):
+def run_policy(
+    policy,
+    workload,
+    stages,
+    cpus=CPUS,
+    expected_workflows=3,
+    deadlines=DEADLINES,
+):
     command = [
         "make",
         "-C",
@@ -75,7 +84,7 @@ def run_policy(policy, workload, stages):
         "qemu-nox",
         "SCHED_POLICY=" + policy,
         "QEMU=" + str(QEMU),
-        "CPUS=" + str(CPUS),
+        "CPUS=" + str(cpus),
     ]
     output = bytearray()
     errors = []
@@ -171,9 +180,9 @@ def run_policy(policy, workload, stages):
         errors.append("xv6 shell prompt was not detected")
     if summary is None:
         errors.append("benchmark summary was not received")
-    elif summary[0] != 3 or summary[1] != 3:
+    elif summary[0] != expected_workflows or summary[1] != expected_workflows:
         errors.append(
-            "expected 3 workflows completed; summary reported "
+            f"expected {expected_workflows} workflows completed; summary reported "
             f"workflows={summary[0]} completed={summary[1]}"
         )
 
@@ -187,14 +196,21 @@ def run_policy(policy, workload, stages):
         }
         for match in RESULT_RE.findall(output)
     ]
-    if len(results) != 3:
-        errors.append(f"expected 3 BENCH_RESULT lines, received {len(results)}")
+    if len(results) != expected_workflows:
+        errors.append(
+            f"expected {expected_workflows} BENCH_RESULT lines, "
+            f"received {len(results)}"
+        )
     else:
-        expected_wids = {1, 2, 3}
+        expected_wids = set(range(1, expected_workflows + 1))
         actual_wids = [result["wid"] for result in results]
-        if set(actual_wids) != expected_wids or len(set(actual_wids)) != 3:
+        if (
+            set(actual_wids) != expected_wids
+            or len(set(actual_wids)) != expected_workflows
+        ):
             errors.append(
-                "expected one result for workflow IDs 1, 2, and 3; received "
+                f"expected one result for workflow IDs 1 through "
+                f"{expected_workflows}; received "
                 + ", ".join(str(wid) for wid in actual_wids)
             )
         for result in results:
@@ -204,13 +220,17 @@ def run_policy(policy, workload, stages):
                     f"workflow {wid} reported stages={result['stages']}; "
                     f"expected {stages}"
                 )
-            if wid in expected_wids and result["deadline_ticks"] != DEADLINES[wid - 1]:
+            if (
+                deadlines is not None
+                and wid in expected_wids
+                and result["deadline_ticks"] != deadlines[wid - 1]
+            ):
                 errors.append(
                     f"workflow {wid} reported deadline="
-                    f"{result['deadline_ticks']}; expected {DEADLINES[wid - 1]}"
+                    f"{result['deadline_ticks']}; expected {deadlines[wid - 1]}"
                 )
 
-    if summary is not None and len(results) == 3:
+    if summary is not None and len(results) == expected_workflows:
         result_misses = sum(result["deadline_miss"] for result in results)
         if summary[2] != result_misses:
             errors.append(
@@ -229,69 +249,125 @@ def create_experiment_dir():
     return experiment_dir
 
 
-def main():
+def build_parser():
+    parser = argparse.ArgumentParser(
+        description="Run repeated xv6 scheduler benchmarks under QEMU."
+    )
+    parser.add_argument(
+        "--cpus",
+        type=int,
+        choices=(1, 3),
+        default=CPUS,
+        help="number of QEMU CPUs (default: 1)",
+    )
+    parser.add_argument(
+        "--repetitions",
+        type=int,
+        default=DEFAULT_REPETITIONS,
+        help=f"runs per policy/workload (default: {DEFAULT_REPETITIONS})",
+    )
+    parser.add_argument(
+        "--policies",
+        nargs="+",
+        choices=POLICIES,
+        default=list(POLICIES),
+        metavar="POLICY",
+        help="scheduler policies to run (default: all three)",
+    )
+    return parser
+
+
+def main(argv=None):
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.repetitions < 1:
+        parser.error("--repetitions must be at least 1")
+
     experiment_dir = create_experiment_dir()
     rows = []
     summaries = []
 
-    for policy in POLICIES:
+    for policy in args.policies:
         for configuration, stages, cpu_work in CONFIGURATIONS:
             workload = (
                 f"sched_bench {stages} {cpu_work} "
                 + " ".join(str(deadline) for deadline in DEADLINES)
             )
-            run_name = f"{policy.lower()}_{configuration.lower()}"
-            print(
-                f"[{policy}/{configuration}] building and running "
-                f"{workload} with CPUS={CPUS}",
-                flush=True,
-            )
-            output, results, summary, errors = run_policy(
-                policy, workload, stages
-            )
-            console_path = experiment_dir / f"{run_name}_console.log"
-            console_path.write_bytes(output)
+            for repetition in range(1, args.repetitions + 1):
+                run_name = (
+                    f"{policy.lower()}_{configuration.lower()}_"
+                    f"cpus{args.cpus}_rep{repetition:02d}"
+                )
+                print(
+                    f"[{policy}/{configuration} rep {repetition}/"
+                    f"{args.repetitions}] building and running {workload} "
+                    f"with CPUS={args.cpus}",
+                    flush=True,
+                )
+                output, results, summary, errors = run_policy(
+                    policy, workload, stages, args.cpus
+                )
+                console_path = experiment_dir / f"{run_name}_console.log"
+                console_path.write_bytes(output)
 
-            for result in results:
-                rows.append(
+                for result in results:
+                    rows.append(
+                        {
+                            "policy": policy,
+                            "workload": configuration,
+                            "configuration": configuration,
+                            "cpu_count": args.cpus,
+                            "repetition": repetition,
+                            "stages": result["stages"],
+                            "CPU_work": cpu_work,
+                            "workflow_id": result["wid"],
+                            "elapsed_ticks": result["elapsed_ticks"],
+                            "deadline_ticks": result["deadline_ticks"],
+                            "deadline_miss": result["deadline_miss"],
+                        }
+                    )
+
+                completed = summary[1] if summary is not None else None
+                misses = summary[2] if summary is not None else None
+                success = not errors
+                summaries.append(
                     {
                         "policy": policy,
-                        "configuration": configuration,
-                        "stages": result["stages"],
-                        "CPU_work": cpu_work,
-                        "workflow_id": result["wid"],
-                        "elapsed_ticks": result["elapsed_ticks"],
-                        "deadline_ticks": result["deadline_ticks"],
-                        "deadline_miss": result["deadline_miss"],
+                        "workload": configuration,
+                        "cpu_count": args.cpus,
+                        "repetition": repetition,
+                        "stages": stages,
+                        "cpu_work": cpu_work,
+                        "completed": completed,
+                        "misses": misses,
+                        "success": success,
                     }
                 )
-
-            completed = summary[1] if summary is not None else None
-            misses = summary[2] if summary is not None else None
-            success = not errors
-            summaries.append(
-                (policy, configuration, stages, cpu_work, completed, misses, success)
-            )
-            if errors:
-                print(
-                    f"[{policy}/{configuration}] FAILED: {'; '.join(errors)}",
-                    file=sys.stderr,
-                )
-                print(
-                    f"[{policy}/{configuration}] captured output: {console_path}",
-                    file=sys.stderr,
-                )
-            else:
-                print(
-                    f"[{policy}/{configuration}] completed={completed} "
-                    f"deadline_misses={misses}"
-                )
+                if errors:
+                    print(
+                        f"[{policy}/{configuration} rep {repetition}] FAILED: "
+                        f"{'; '.join(errors)}",
+                        file=sys.stderr,
+                    )
+                    print(
+                        f"[{policy}/{configuration}] captured output: "
+                        f"{console_path}",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(
+                        f"[{policy}/{configuration} rep {repetition}] "
+                        f"completed={completed} deadline_misses={misses}"
+                    )
 
     csv_path = experiment_dir / "benchmark_results.csv"
     with csv_path.open("w", newline="") as csv_file:
         fields = (
             "policy",
+            "workload",
             "configuration",
+            "cpu_count",
+            "repetition",
             "stages",
             "CPU_work",
             "workflow_id",
@@ -306,33 +382,63 @@ def main():
     summary_path = experiment_dir / "comparison_summary.txt"
     with summary_path.open("w") as summary_file:
         summary_file.write(
-            f"Workload comparison; CPUS={CPUS}; deadlines="
+            f"Repeated workload comparison; CPUS={args.cpus}; "
+            f"repetitions={args.repetitions}; policies="
+            f"{','.join(args.policies)}; deadlines="
             f"{','.join(str(deadline) for deadline in DEADLINES)} ticks\n"
         )
         summary_file.write(
-            "Policy          Configuration    Stages    CPU work    "
-            "Completed workflows    Deadline misses    Status\n"
+            "CPU count  Policy          Workload  Repetitions  "
+            "Completed workflows  Deadline misses  Mean elapsed ticks  Status\n"
         )
-        for (
-            policy,
-            configuration,
-            stages,
-            cpu_work,
-            completed,
-            misses,
-            success,
-        ) in summaries:
-            status = "success" if success else "failed/incomplete"
+        groups = {}
+        for item in summaries:
+            key = (item["cpu_count"], item["policy"], item["workload"])
+            group = groups.setdefault(
+                key,
+                {
+                    "runs": 0,
+                    "successful": 0,
+                    "completed": 0,
+                    "misses": 0,
+                    "elapsed": [],
+                },
+            )
+            group["runs"] += 1
+            group["successful"] += int(item["success"])
+            group["completed"] += item["completed"] or 0
+            group["misses"] += item["misses"] or 0
+            group["elapsed"].extend(
+                row["elapsed_ticks"]
+                for row in rows
+                if row["cpu_count"] == item["cpu_count"]
+                and row["policy"] == item["policy"]
+                and row["workload"] == item["workload"]
+                and row["repetition"] == item["repetition"]
+            )
+
+        for (cpu_count, policy, workload), group in sorted(groups.items()):
+            status = (
+                "success"
+                if group["successful"] == group["runs"]
+                else "failed/incomplete"
+            )
+            mean_elapsed = (
+                sum(group["elapsed"]) / len(group["elapsed"])
+                if group["elapsed"]
+                else 0.0
+            )
             summary_file.write(
-                f"{policy:<15} {configuration:<16} {stages:<8} "
-                f"{cpu_work:<11} {completed if completed is not None else '-':<22} "
-                f"{misses if misses is not None else '-':<18} {status}\n"
+                f"{cpu_count:<10} {policy:<15} {workload:<9} "
+                f"{group['successful']}/{group['runs']:<11} "
+                f"{group['completed']:<21} {group['misses']:<16} "
+                f"{mean_elapsed:<19.2f} {status}\n"
             )
 
     print(f"CSV: {csv_path}")
     print(f"Summary: {summary_path}")
     print(f"Raw consoles: {experiment_dir}")
-    failed = any(not item[6] for item in summaries)
+    failed = any(not item["success"] for item in summaries)
     return 1 if failed else 0
 
 

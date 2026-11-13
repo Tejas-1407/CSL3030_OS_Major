@@ -1,0 +1,116 @@
+make: Entering directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'
+/home/tejas/Documents/qemu-master/build/qemu-system-i386 -nographic -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6-EDF_DONATION.img,index=0,media=disk,format=raw -smp 1 -m 512 
+c[?7l[2J[0mSeaBIOS (version rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFD1EC0+1EF31EC0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from Hard Disk..xv6...
+cpu0: starting 0
+sb: size 1200 nblocks 1141 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+init: starting sh
+$ sched_bench 4 500000 100 200 300
+PIPE_WRITE writer=4
+PIPE_WRITE writer=4
+PIPE_WAKE reader=3
+PIPE_WRITE writer=5
+PIPE_WRITE writer=5
+PIPE_WAKE reader=3
+PIPE_WRITE writer=6
+PIPE_WRITE writer=6
+PIPE_WAKE reader=3
+PIPE_WRITE writer=7
+PIPE_WAKE reader=3
+PIPE_WRITE writer=8
+PIPE_WRITE writer=8
+PIPE_WAKE reader=3
+PIPE_WRITE writer=9
+PIPE_WRITE writer=9
+PIPE_WAKE reader=3
+PIPE_WRITE writer=10
+PIPE_WRITE writer=10
+PIPE_WAKE reader=3
+PIPE_WRITE writer=11
+PIPE_WAKE reader=3
+PIPE_WRITE writer=12
+PIPE_WRITE writer=12
+PIPE_WAKE reader=3
+PIPE_WRITE writer=13
+PIPE_WRITE writer=13
+PIPE_WAKE reader=3
+PIPE_WRITE writer=14
+PIPE_WRITE writer=14
+PIPE_WAKE reader=3
+PIPE_WRITE writer=15
+PIPE_WAKE reader=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WAKE reader=4
+PIPE_WAKE reader=5
+PIPE_WAKE reader=6
+PIPE_WAKE reader=7
+PIPE_WAKE reader=8
+PIPE_WAKE reader=9
+PIPE_WAKE reader=10
+PIPE_WAKE reader=11
+PIPE_WAKE reader=12
+PIPE_WAKE reader=13
+PIPE_WAKE reader=14
+PIPE_WAKE reader=15
+DONATION donor=7 pipe=8de98000 receiver=6 deadline=131
+DONATE receiver=6 deadline=131
+DONATION donor=6 pipe=8df2d000 receiver=5 deadline=131
+DONATE receiver=5 deadline=131
+DONATION donor=5 pipe=8dfc0000 receiver=4 deadline=131
+DONATE receiver=4 deadline=131
+PIPE_WRITE writer=4
+PIPE_WAKE reader=5
+PIPE_WRITE writer=5
+PIPE_WAKE reader=6
+PIPE_WRITE writer=6
+PIPE_WAKE reader=7
+PIPE_WRITE writer=7
+DONATION donor=11 pipe=8dd79000 receiver=10 deadline=231
+DONATE receiver=10 deadline=231
+DONATION donor=10 pipe=8ddc1000 receiver=9 deadline=231
+DONATE receiver=9 deadline=231
+DONATION donor=9 pipe=8de09000 receiver=8 deadline=231
+DONATE receiver=8 deadline=231
+PIPE_WRITE writer=8
+PIPE_WAKE reader=9
+PIPE_WRITE writer=9
+PIPE_WAKE reader=10
+PIPE_WRITE writer=10
+PIPE_WAKE reader=11
+PIPE_WRITE writer=11
+DONATION donor=15 pipe=8dc5a000 receiver=14 deadline=331
+DONATE receiver=14 deadline=331
+DONATION donor=14 pipe=8dca2000 receiver=13 deadline=331
+DONATE receiver=13 deadline=331
+DONATION donor=13 pipe=8dcea000 receiver=12 deadline=331
+DONATE receiver=12 deadline=331
+PIPE_WRITE writer=12
+PIPE_WAKE reader=13
+PIPE_WRITE writer=13
+PIPE_WAKE reader=14
+PIPE_WRITE writer=14
+PIPE_WAKE reader=15
+PIPE_WRITE writer=15
+BENCH_RESULT wid=1 stages=4 elapsed=1 deadline=100 miss=0
+BENCH_RESULT wid=2 stages=4 elapsed=4 deadline=200 miss=0
+BENCH_RESULT wid=3 stages=4 elapsed=6 deadline=300 miss=0
+BENCH_SUMMARY workflows=3 completed=3 deadline_misses=0
+QEMU: Terminated
+make: Leaving directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'

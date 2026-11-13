@@ -236,6 +236,7 @@ UPROGS=\
 	_donation_multi_test\
 	_donation_kill_test\
 	_donation_cycle_test\
+	_donation_pipeline_test\
 	_taint_test\
 	_taint_audit_test\
 	_taint_probe\

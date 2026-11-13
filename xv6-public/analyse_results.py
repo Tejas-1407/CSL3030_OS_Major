@@ -39,14 +39,20 @@ def load_results(csv_path):
 
         rows = []
         seen = set()
+        cpus = set()
+        policies = set()
+        workloads = set()
+        repetitions = set()
         for line_number, row in enumerate(reader, start=2):
             policy = row["policy"]
-            configuration = row["configuration"]
+            configuration = row.get("workload") or row["configuration"]
             if policy not in POLICIES or configuration not in CONFIGURATIONS:
                 raise ValueError(
                     f"Unexpected policy or configuration on CSV line {line_number}"
                 )
             try:
+                cpu_count = int(row.get("cpu_count") or 1)
+                repetition = int(row.get("repetition") or 1)
                 workflow_id = int(row["workflow_id"])
                 elapsed_ticks = int(row["elapsed_ticks"])
                 deadline_miss = int(row["deadline_miss"])
@@ -54,15 +60,26 @@ def load_results(csv_path):
                 raise ValueError(
                     f"Invalid numeric measurement on CSV line {line_number}"
                 ) from exc
-            if elapsed_ticks < 0 or deadline_miss not in (0, 1):
+            if (
+                cpu_count not in (1, 3)
+                or repetition < 1
+                or elapsed_ticks < 0
+                or deadline_miss not in (0, 1)
+            ):
                 raise ValueError(f"Invalid measurement on CSV line {line_number}")
 
-            key = (policy, configuration, workflow_id)
+            key = (cpu_count, policy, configuration, repetition, workflow_id)
             if key in seen:
                 raise ValueError(f"Duplicate workflow result on CSV line {line_number}")
             seen.add(key)
+            cpus.add(cpu_count)
+            policies.add(policy)
+            workloads.add(configuration)
+            repetitions.add(repetition)
             rows.append(
                 {
+                    "cpu_count": cpu_count,
+                    "repetition": repetition,
                     "policy": policy,
                     "configuration": configuration,
                     "workflow_id": workflow_id,
@@ -71,10 +88,14 @@ def load_results(csv_path):
                 }
             )
 
+    if not rows:
+        raise ValueError("CSV contains no workflow measurements")
     expected = {
-        (policy, configuration, workflow_id)
-        for policy in POLICIES
-        for configuration in CONFIGURATIONS
+        (cpu_count, policy, configuration, repetition, workflow_id)
+        for cpu_count in cpus
+        for policy in policies
+        for configuration in workloads
+        for repetition in range(1, max(repetitions) + 1)
         for workflow_id in (1, 2, 3)
     }
     if seen != expected:
@@ -106,90 +127,141 @@ def main():
     grouped = defaultdict(list)
     misses = defaultdict(int)
     for row in rows:
-        grouped[(row["policy"], row["configuration"])].append(
+        grouped[
+            (row["cpu_count"], row["policy"], row["configuration"])
+        ].append(
             row["elapsed_ticks"]
         )
-        misses[row["policy"]] += row["deadline_miss"]
+        misses[
+            (row["cpu_count"], row["policy"], row["configuration"])
+        ] += row["deadline_miss"]
 
     averages = {
         key: sum(times) / len(times)
         for key, times in grouped.items()
     }
-    overall_averages = {
-        policy: sum(
-            row["elapsed_ticks"] for row in rows if row["policy"] == policy
-        )
-        / sum(1 for row in rows if row["policy"] == policy)
+    selected_policies = [
+        policy
         for policy in POLICIES
-    }
+        if policy in {row["policy"] for row in rows}
+    ]
+    selected_workloads = [
+        workload
+        for workload in CONFIGURATIONS
+        if workload in {row["configuration"] for row in rows}
+    ]
 
-    print("Average workflow completion time (ticks) and deadline misses")
-    print(f"{'Configuration':<14} {'Policy':<15} {'Average ticks':>13} {'Misses':>8}")
-    for configuration in CONFIGURATIONS:
-        for policy in POLICIES:
-            config_misses = sum(
-                row["deadline_miss"]
-                for row in rows
+    for cpu_count in sorted({row["cpu_count"] for row in rows}):
+        cpu_rows = [row for row in rows if row["cpu_count"] == cpu_count]
+        overall_averages = {
+            policy: sum(
+                row["elapsed_ticks"]
+                for row in cpu_rows
                 if row["policy"] == policy
-                and row["configuration"] == configuration
             )
-            print(
-                f"{configuration:<14} {policy:<15} "
-                f"{averages[(policy, configuration)]:>13.2f} "
-                f"{config_misses:>8}"
-            )
+            / sum(1 for row in cpu_rows if row["policy"] == policy)
+            for policy in selected_policies
+        }
 
-    print("\nBest measured scheduler by workload (lowest average elapsed ticks)")
-    for configuration in CONFIGURATIONS:
-        best_time = min(averages[(policy, configuration)] for policy in POLICIES)
-        winners = [
-            policy
-            for policy in POLICIES
-            if averages[(policy, configuration)] == best_time
-        ]
         print(
-            f"{configuration}: {', '.join(winners)} "
-            f"({best_time:.2f} ticks average)"
+            f"CPUS={cpu_count}: average workflow completion time (ticks) "
+            "and deadline misses"
         )
-
-    print("\nOverall average workflow completion time (ticks)")
-    for policy in POLICIES:
-        print(f"{policy}: {overall_averages[policy]:.2f}")
-
-    figure, axis = plt.subplots()
-    axis.bar(POLICIES, [overall_averages[policy] for policy in POLICIES])
-    axis.set(title="Average Workflow Completion Time by Scheduler", ylabel="Ticks")
-    axis.grid(axis="y", alpha=0.3)
-    figure.tight_layout()
-    figure.savefig(analysis_dir / "average_completion_by_scheduler.png", dpi=150)
-    plt.close(figure)
-
-    figure, axis = plt.subplots()
-    for policy in POLICIES:
-        axis.plot(
-            CONFIGURATIONS,
-            [averages[(policy, configuration)] for configuration in CONFIGURATIONS],
-            marker="o",
-            label=policy,
+        print(
+            f"{'Workload':<14} {'Policy':<15} "
+            f"{'Average ticks':>13} {'Misses':>8}"
         )
-    axis.set(
-        title="Average Completion Time Across Workloads",
-        xlabel="Workload configuration",
-        ylabel="Average elapsed ticks",
-    )
-    axis.grid(alpha=0.3)
-    axis.legend()
-    figure.tight_layout()
-    figure.savefig(analysis_dir / "completion_time_by_workload.png", dpi=150)
-    plt.close(figure)
+        for configuration in selected_workloads:
+            for policy in selected_policies:
+                print(
+                    f"{configuration:<14} {policy:<15} "
+                    f"{averages[(cpu_count, policy, configuration)]:>13.2f} "
+                    f"{misses[(cpu_count, policy, configuration)]:>8}"
+                )
 
-    figure, axis = plt.subplots()
-    axis.bar(POLICIES, [misses[policy] for policy in POLICIES])
-    axis.set(title="Deadline Misses by Scheduler", ylabel="Workflow deadline misses")
-    axis.grid(axis="y", alpha=0.3)
-    figure.tight_layout()
-    figure.savefig(analysis_dir / "deadline_misses_by_scheduler.png", dpi=150)
-    plt.close(figure)
+        print("\nBest measured scheduler by workload (lowest average elapsed ticks)")
+        for configuration in selected_workloads:
+            best_time = min(
+                averages[(cpu_count, policy, configuration)]
+                for policy in selected_policies
+            )
+            winners = [
+                policy
+                for policy in selected_policies
+                if averages[(cpu_count, policy, configuration)] == best_time
+            ]
+            print(
+                f"{configuration}: {', '.join(winners)} "
+                f"({best_time:.2f} ticks average)"
+            )
+
+        print("\nOverall average workflow completion time (ticks)")
+        for policy in selected_policies:
+            print(f"{policy}: {overall_averages[policy]:.2f}")
+
+        suffix = f"_cpus{cpu_count}"
+        figure, axis = plt.subplots()
+        axis.bar(
+            selected_policies,
+            [overall_averages[policy] for policy in selected_policies],
+        )
+        axis.set(
+            title=f"Average Workflow Completion Time by Scheduler (CPUS={cpu_count})",
+            ylabel="Ticks",
+        )
+        axis.grid(axis="y", alpha=0.3)
+        figure.tight_layout()
+        figure.savefig(
+            analysis_dir / f"average_completion_by_scheduler{suffix}.png",
+            dpi=150,
+        )
+        plt.close(figure)
+
+        figure, axis = plt.subplots()
+        for policy in selected_policies:
+            axis.plot(
+                selected_workloads,
+                [
+                    averages[(cpu_count, policy, configuration)]
+                    for configuration in selected_workloads
+                ],
+                marker="o",
+                label=policy,
+            )
+        axis.set(
+            title=f"Average Completion Time Across Workloads (CPUS={cpu_count})",
+            xlabel="Workload configuration",
+            ylabel="Average elapsed ticks",
+        )
+        axis.grid(alpha=0.3)
+        axis.legend()
+        figure.tight_layout()
+        figure.savefig(
+            analysis_dir / f"completion_time_by_workload{suffix}.png", dpi=150
+        )
+        plt.close(figure)
+
+        figure, axis = plt.subplots()
+        axis.bar(
+            selected_policies,
+            [
+                sum(
+                    misses[(cpu_count, policy, workload)]
+                    for workload in selected_workloads
+                )
+                for policy in selected_policies
+            ],
+        )
+        axis.set(
+            title=f"Deadline Misses by Scheduler (CPUS={cpu_count})",
+            ylabel="Workflow deadline misses",
+        )
+        axis.grid(axis="y", alpha=0.3)
+        figure.tight_layout()
+        figure.savefig(
+            analysis_dir / f"deadline_misses_by_scheduler{suffix}.png", dpi=150
+        )
+        plt.close(figure)
 
     print(f"\nGraphs saved to {analysis_dir}")
     return 0

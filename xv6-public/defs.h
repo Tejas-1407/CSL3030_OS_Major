@@ -114,7 +114,7 @@ int             fork(void);
 int             growproc(int);
 int             kill(int);
 void            donate(struct proc*, uint);
-void            set_waiting_on(struct proc*, struct proc*);
+void            set_waiting_on(struct proc*, struct proc*, void*);
 void            clear_waiting_on(struct proc*);
 struct cpu*     mycpu(void);
 struct proc*    myproc();

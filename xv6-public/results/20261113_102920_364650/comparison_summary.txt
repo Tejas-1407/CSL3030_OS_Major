@@ -1,0 +1,5 @@
+Repeated workload comparison; CPUS=1; repetitions=1; policies=EDF; deadlines=100,200,300 ticks
+CPU count  Policy          Workload  Repetitions  Completed workflows  Deadline misses  Mean elapsed ticks  Status
+1          EDF             High      1/1           3                     0                8.67                success
+1          EDF             Low       1/1           3                     0                0.67                success
+1          EDF             Medium    1/1           3                     0                2.33                success

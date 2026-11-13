@@ -1,0 +1,224 @@
+make: Entering directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'
+/home/tejas/Documents/qemu-master/build/qemu-system-i386 -nographic -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6-EDF_DONATION.img,index=0,media=disk,format=raw -smp 1 -m 512 
+c[?7l[2J[0mSeaBIOS (version rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFD1EC0+1EF31EC0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from Hard Disk..xv6...
+cpu0: starting 0
+sb: size 1200 nblocks 1141 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+init: starting sh
+$ sched_bench 8 1000000 100 200 300
+PIPE_WRITE writer=4
+PIPE_WRITE writer=4
+PIPE_WAKE reader=3
+PIPE_WRITE writer=5
+PIPE_WRITE writer=5
+PIPE_WAKE reader=3
+PIPE_WRITE writer=6
+PIPE_WRITE writer=6
+PIPE_WAKE reader=3
+PIPE_WRITE writer=7
+PIPE_WRITE writer=7
+PIPE_WAKE reader=3
+PIPE_WRITE writer=8
+PIPE_WRITE writer=8
+PIPE_WAKE reader=3
+PIPE_WRITE writer=9
+PIPE_WRITE writer=9
+PIPE_WAKE reader=3
+PIPE_WRITE writer=10
+PIPE_WRITE writer=10
+PIPE_WAKE reader=3
+PIPE_WRITE writer=11
+PIPE_WAKE reader=3
+PIPE_WRITE writer=12
+PIPE_WRITE writer=12
+PIPE_WAKE reader=3
+PIPE_WRITE writer=13
+PIPE_WRITE writer=13
+PIPE_WAKE reader=3
+PIPE_WRITE writer=14
+PIPE_WRITE writer=14
+PIPE_WAKE reader=3
+PIPE_WRITE writer=15
+PIPE_WRITE writer=15
+PIPE_WAKE reader=3
+PIPE_WRITE writer=16
+PIPE_WRITE writer=16
+PIPE_WAKE reader=3
+PIPE_WRITE writer=17
+PIPE_WRITE writer=17
+PIPE_WAKE reader=3
+PIPE_WRITE writer=18
+PIPE_WRITE writer=18
+PIPE_WAKE reader=3
+PIPE_WRITE writer=19
+PIPE_WAKE reader=3
+PIPE_WRITE writer=20
+PIPE_WRITE writer=20
+PIPE_WAKE reader=3
+PIPE_WRITE writer=21
+PIPE_WRITE writer=21
+PIPE_WAKE reader=3
+PIPE_WRITE writer=22
+PIPE_WRITE writer=22
+PIPE_WAKE reader=3
+PIPE_WRITE writer=23
+PIPE_WRITE writer=23
+PIPE_WAKE reader=3
+PIPE_WRITE writer=24
+PIPE_WRITE writer=24
+PIPE_WAKE reader=3
+PIPE_WRITE writer=25
+PIPE_WRITE writer=25
+PIPE_WAKE reader=3
+PIPE_WRITE writer=26
+PIPE_WRITE writer=26
+PIPE_WAKE reader=3
+PIPE_WRITE writer=27
+PIPE_WAKE reader=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WAKE reader=4
+PIPE_WAKE reader=5
+PIPE_WAKE reader=6
+PIPE_WAKE reader=7
+PIPE_WAKE reader=8
+PIPE_WAKE reader=9
+PIPE_WAKE reader=10
+PIPE_WAKE reader=11
+PIPE_WAKE reader=12
+PIPE_WAKE reader=13
+PIPE_WAKE reader=14
+PIPE_WAKE reader=15
+PIPE_WAKE reader=16
+PIPE_WAKE reader=17
+PIPE_WAKE reader=18
+PIPE_WAKE reader=19
+PIPE_WAKE reader=20
+PIPE_WAKE reader=21
+PIPE_WAKE reader=22
+PIPE_WAKE reader=23
+PIPE_WAKE reader=24
+PIPE_WAKE reader=25
+PIPE_WAKE reader=26
+PIPE_WAKE reader=27
+DONATION donor=11 pipe=8dd78000 receiver=10 deadline=137
+DONATE receiver=10 deadline=137
+DONATION donor=10 pipe=8ddc0000 receiver=9 deadline=137
+DONATE receiver=9 deadline=137
+DONATION donor=9 pipe=8de08000 receiver=8 deadline=137
+DONATE receiver=8 deadline=137
+DONATION donor=8 pipe=8de50000 receiver=7 deadline=137
+DONATE receiver=7 deadline=137
+DONATION donor=7 pipe=8de98000 receiver=6 deadline=137
+DONATE receiver=6 deadline=137
+DONATION donor=6 pipe=8df2d000 receiver=5 deadline=137
+DONATE receiver=5 deadline=137
+DONATION donor=5 pipe=8dfc0000 receiver=4 deadline=137
+DONATE receiver=4 deadline=137
+PIPE_WRITE writer=4
+PIPE_WAKE reader=5
+PIPE_WRITE writer=5
+PIPE_WAKE reader=6
+PIPE_WRITE writer=6
+PIPE_WAKE reader=7
+PIPE_WRITE writer=7
+PIPE_WAKE reader=8
+PIPE_WRITE writer=8
+PIPE_WAKE reader=9
+PIPE_WRITE writer=9
+PIPE_WAKE reader=10
+PIPE_WRITE writer=10
+PIPE_WAKE reader=11
+PIPE_WRITE writer=11
+DONATION donor=19 pipe=8db39000 receiver=18 deadline=237
+DONATE receiver=18 deadline=237
+DONATION donor=18 pipe=8db81000 receiver=17 deadline=237
+DONATE receiver=17 deadline=237
+DONATION donor=17 pipe=8dbc9000 receiver=16 deadline=237
+DONATE receiver=16 deadline=237
+DONATION donor=16 pipe=8dc11000 receiver=15 deadline=237
+DONATE receiver=15 deadline=237
+DONATION donor=15 pipe=8dc59000 receiver=14 deadline=237
+DONATE receiver=14 deadline=237
+DONATION donor=14 pipe=8dca1000 receiver=13 deadline=237
+DONATE receiver=13 deadline=237
+DONATION donor=13 pipe=8dce9000 receiver=12 deadline=237
+DONATE receiver=12 deadline=237
+PIPE_WRITE writer=12
+PIPE_WAKE reader=13
+PIPE_WRITE writer=13
+PIPE_WAKE reader=14
+PIPE_WRITE writer=14
+PIPE_WAKE reader=15
+PIPE_WRITE writer=15
+PIPE_WAKE reader=16
+PIPE_WRITE writer=16
+PIPE_WAKE reader=17
+PIPE_WRITE writer=17
+PIPE_WAKE reader=18
+PIPE_WRITE writer=18
+PIPE_WAKE reader=19
+PIPE_WRITE writer=19
+DONATION donor=27 pipe=8d8fa000 receiver=26 deadline=337
+DONATE receiver=26 deadline=337
+DONATION donor=26 pipe=8d942000 receiver=25 deadline=337
+DONATE receiver=25 deadline=337
+DONATION donor=25 pipe=8d98a000 receiver=24 deadline=337
+DONATE receiver=24 deadline=337
+DONATION donor=24 pipe=8d9d2000 receiver=23 deadline=337
+DONATE receiver=23 deadline=337
+DONATION donor=23 pipe=8da1a000 receiver=22 deadline=337
+DONATE receiver=22 deadline=337
+DONATION donor=22 pipe=8da62000 receiver=21 deadline=337
+DONATE receiver=21 deadline=337
+DONATION donor=21 pipe=8daaa000 receiver=20 deadline=337
+DONATE receiver=20 deadline=337
+PIPE_WRITE writer=20
+PIPE_WAKE reader=21
+PIPE_WRITE writer=21
+PIPE_WAKE reader=22
+PIPE_WRITE writer=22
+PIPE_WAKE reader=23
+PIPE_WRITE writer=23
+PIPE_WAKE reader=24
+PIPE_WRITE writer=24
+PIPE_WAKE reader=25
+PIPE_WRITE writer=25
+PIPE_WAKE reader=26
+PIPE_WRITE writer=26
+PIPE_WAKE reader=27
+PIPE_WRITE writer=27
+BENCH_RESULT wid=1 stages=8 elapsed=5 deadline=100 miss=0
+BENCH_RESULT wid=2 stages=8 elapsed=10 deadline=200 miss=0
+BENCH_RESULT wid=3 stages=8 elapsed=15 deadline=300 miss=0
+BENCH_SUMMARY workflows=3 completed=3 deadline_misses=0
+QEMU: Terminated
+make: Leaving directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'

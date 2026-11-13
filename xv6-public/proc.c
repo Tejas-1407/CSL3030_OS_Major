@@ -494,7 +494,7 @@ recompute_donations_locked(void)
 
 // Set a pipe dependency and apply the reader's effective deadline.
 void
-set_waiting_on(struct proc *from, struct proc *to)
+set_waiting_on(struct proc *from, struct proc *to, void *pipe_id)
 {
   uint deadline;
 
@@ -502,8 +502,12 @@ set_waiting_on(struct proc *from, struct proc *to)
   from->waiting_on = to;
   deadline = from->deadline < from->donated ?
              from->deadline : from->donated;
-  if(to != 0)
+  if(to != 0){
+    if(to->donated > deadline)
+      cprintf("DONATION donor=%d pipe=%p receiver=%d deadline=%d\n",
+              from->pid, pipe_id, to->pid, deadline);
     donate_locked(to, deadline);
+  }
   release(&ptable.lock);
 }
 

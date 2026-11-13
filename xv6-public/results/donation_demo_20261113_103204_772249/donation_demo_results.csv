@@ -1,0 +1,3 @@
+policy,cpu_count,repetition,workload,completed_workflows,elapsed_ticks,deadline_ticks,deadline_misses,donation_event_count,donation_events,stage_pids,hog_pid,status,errors
+EDF,1,1,four_stage_pipe_plus_cpu_hog,1,150,100,1,3,"donor=5,pipe=8dfbc000,receiver=4,deadline=505;donor=6,pipe=8df76000,receiver=5,deadline=405;donor=7,pipe=8dfbf000,receiver=6,deadline=205",stage1=4;stage2=5;stage3=6;stage4=7,8,success,
+EDF_DONATION,1,1,four_stage_pipe_plus_cpu_hog,1,0,100,0,3,"donor=5,pipe=8dfbc000,receiver=4,deadline=504;donor=6,pipe=8df76000,receiver=5,deadline=404;donor=7,pipe=8dfbf000,receiver=6,deadline=204",stage1=4;stage2=5;stage3=6;stage4=7,8,success,

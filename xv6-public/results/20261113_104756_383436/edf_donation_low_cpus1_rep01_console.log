@@ -1,0 +1,62 @@
+make: Entering directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'
+/home/tejas/Documents/qemu-master/build/qemu-system-i386 -nographic -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6-EDF_DONATION.img,index=0,media=disk,format=raw -smp 1 -m 512 
+c[?7l[2J[0mSeaBIOS (version rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org)
+
+
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFD1EC0+1EF31EC0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from Hard Disk..xv6...
+cpu0: starting 0
+sb: size 1200 nblocks 1141 ninodes 200 nlog 30 logstart 2 inodestart 32 bmap start 58
+init: starting sh
+$ sched_bench 2 100000 100 200 300
+PIPE_WRITE writer=4
+PIPE_WRITE writer=4
+PIPE_WAKE reader=3
+PIPE_WRITE writer=5
+PIPE_WAKE reader=3
+PIPE_WRITE writer=6
+PIPE_WRITE writer=6
+PIPE_WAKE reader=3
+PIPE_WRITE writer=7
+PIPE_WAKE reader=3
+PIPE_WRITE writer=8
+PIPE_WRITE writer=8
+PIPE_WAKE reader=3
+PIPE_WRITE writer=9
+PIPE_WAKE reader=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WRITE writer=3
+PIPE_WAKE reader=4
+PIPE_WAKE reader=5
+PIPE_WAKE reader=6
+PIPE_WAKE reader=7
+PIPE_WAKE reader=8
+PIPE_WAKE reader=9
+DONATION donor=5 pipe=8dfc0000 receiver=4 deadline=127
+DONATE receiver=4 deadline=127
+PIPE_WRITE writer=4
+PIPE_WAKE reader=5
+PIPE_WRITE writer=5
+DONATION donor=7 pipe=8de99000 receiver=6 deadline=227
+DONATE receiver=6 deadline=227
+PIPE_WRITE writer=6
+PIPE_WAKE reader=7
+PIPE_WRITE writer=7
+DONATION donor=9 pipe=8de0a000 receiver=8 deadline=327
+DONATE receiver=8 deadline=327
+PIPE_WRITE writer=8
+PIPE_WAKE reader=9
+PIPE_WRITE writer=9
+BENCH_RESULT wid=1 stages=2 elapsed=0 deadline=100 miss=0
+BENCH_RESULT wid=2 stages=2 elapsed=1 deadline=200 miss=0
+BENCH_RESULT wid=3 stages=2 elapsed=1 deadline=300 miss=0
+BENCH_SUMMARY workflows=3 completed=3 deadline_misses=0
+QEMU: Terminated
+make: Leaving directory '/home/tejas/Documents/cs236-xv6-linux/Thread_Pool/xv6-public'

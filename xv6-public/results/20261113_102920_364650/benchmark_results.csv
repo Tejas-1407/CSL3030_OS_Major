@@ -1,0 +1,10 @@
+policy,workload,configuration,cpu_count,repetition,stages,CPU_work,workflow_id,elapsed_ticks,deadline_ticks,deadline_miss
+EDF,Low,Low,1,1,2,100000,1,0,100,0
+EDF,Low,Low,1,1,2,100000,2,1,200,0
+EDF,Low,Low,1,1,2,100000,3,1,300,0
+EDF,Medium,Medium,1,1,4,500000,1,1,100,0
+EDF,Medium,Medium,1,1,4,500000,2,2,200,0
+EDF,Medium,Medium,1,1,4,500000,3,4,300,0
+EDF,High,High,1,1,8,1000000,1,4,100,0
+EDF,High,High,1,1,8,1000000,2,9,200,0
+EDF,High,High,1,1,8,1000000,3,13,300,0

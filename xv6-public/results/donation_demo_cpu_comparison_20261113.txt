@@ -1,0 +1,20 @@
+Focused donation demonstration
+Workload: four-stage pipe workflow plus unrelated CPU hog
+Repetitions: 1 per policy and CPU count
+
+CPUS=1
+Policy          Completed  Elapsed ticks  Deadline misses  Donation events
+EDF             1          150            1                3
+EDF_DONATION    1          0              0                3
+Raw logs and detailed summary: donation_demo_20261113_103204_772249/
+
+CPUS=3
+Policy          Completed  Elapsed ticks  Deadline misses  Donation events
+EDF             1          150            1                3
+EDF_DONATION    1          0              0                3
+Raw logs and detailed summary: donation_demo_20261113_103212_856135/
+
+Both runs reported the four stage PIDs (4-7), hog PID (8), and three
+donor/pipe/receiver events. These are single-run observations, not repeated
+statistics. A zero elapsed-tick measurement reflects the xv6 tick resolution;
+it should not be interpreted as zero real execution time.
