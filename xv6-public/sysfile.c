@@ -193,6 +193,11 @@ sys_unlink(void)
   if(argstr(0, &path) < 0)
     return -1;
 
+  if(proc_is_tainted()){
+    cprintf("TAINT_DENY pid=%d op=unlink\n", myproc()->pid);
+    return -1;
+  }
+
   begin_op();
   if((dp = nameiparent(path, name)) == 0){
     end_op();
@@ -227,6 +232,8 @@ sys_unlink(void)
 
   ip->nlink--;
   iupdate(ip);
+  if(ip->nlink == 0)
+    clear_inode_taint(ip);
   iunlockput(ip);
 
   end_op();
@@ -288,13 +295,21 @@ sys_open(void)
 {
   char *path;
   int fd, omode;
+  uint inbox_dev, inbox_inum;
   struct file *f;
-  struct inode *ip;
+  struct inode *ip, *inbox;
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
 
   begin_op();
+
+  inbox_dev = inbox_inum = 0;
+  if((inbox = namei("/inbox.txt")) != 0){
+    inbox_dev = inbox->dev;
+    inbox_inum = inbox->inum;
+    iput(inbox);
+  }
 
   if(omode & O_CREATE){
     ip = create(path, T_FILE, 0, 0);
@@ -322,6 +337,10 @@ sys_open(void)
     end_op();
     return -1;
   }
+
+  if(inbox_inum != 0 &&
+     ip->dev == inbox_dev && ip->inum == inbox_inum)
+    taint_inode(ip);
   iunlock(ip);
   end_op();
 

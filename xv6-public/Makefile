@@ -236,10 +236,13 @@ UPROGS=\
 	_donation_multi_test\
 	_donation_kill_test\
 	_donation_cycle_test\
+	_taint_test\
+	_taint_audit_test\
+	_taint_probe\
 	_sched_bench
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs README inbox.txt important.txt $(UPROGS)
+	./mkfs fs.img README inbox.txt important.txt $(UPROGS)
 
 -include *.d
 

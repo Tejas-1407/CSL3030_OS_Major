@@ -21,6 +21,7 @@ struct inode {
   short major;
   short minor;
   short nlink;
+  int tainted;                 // Volatile label for data associated with inode.
   uint size;
   uint addrs[NDIRECT+1];
 };

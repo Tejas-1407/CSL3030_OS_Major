@@ -26,6 +26,33 @@ static void itrunc(struct inode*);
 // there should be one superblock per disk device, but we run with
 // only one device
 struct superblock sb; 
+static char inode_taint[FSSIZE * IPB];
+
+int
+inode_is_tainted(struct inode *ip)
+{
+  if(ip->inum >= FSSIZE * IPB)
+    panic("inode taint index");
+  return inode_taint[ip->inum];
+}
+
+void
+taint_inode(struct inode *ip)
+{
+  if(ip->inum >= FSSIZE * IPB)
+    panic("inode taint index");
+  inode_taint[ip->inum] = 1;
+  ip->tainted = 1;
+}
+
+void
+clear_inode_taint(struct inode *ip)
+{
+  if(ip->inum >= FSSIZE * IPB)
+    panic("inode taint index");
+  inode_taint[ip->inum] = 0;
+  ip->tainted = 0;
+}
 
 // Read the super block.
 void
@@ -262,8 +289,11 @@ iget(uint dev, uint inum)
     panic("iget: no inodes");
 
   ip = empty;
+  if(inum >= FSSIZE * IPB)
+    panic("iget inode taint index");
   ip->dev = dev;
   ip->inum = inum;
+  ip->tainted = inode_taint[inum];
   ip->ref = 1;
   ip->valid = 0;
   release(&icache.lock);

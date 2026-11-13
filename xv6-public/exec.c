@@ -3,7 +3,11 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "fs.h"
 #include "defs.h"
+#include "spinlock.h"
+#include "sleeplock.h"
+#include "file.h"
 #include "x86.h"
 #include "elf.h"
 
@@ -12,6 +16,7 @@ exec(char *path, char **argv)
 {
   char *s, *last;
   int i, off;
+  int executable_tainted;
   uint argc, sz, sp, ustack[3+MAXARG+1];
   struct elfhdr elf;
   struct inode *ip;
@@ -28,6 +33,7 @@ exec(char *path, char **argv)
   }
   ilock(ip);
   pgdir = 0;
+  executable_tainted = 0;
 
   // Check ELF header
   if(readi(ip, (char*)&elf, 0, sizeof(elf)) != sizeof(elf))
@@ -56,6 +62,7 @@ exec(char *path, char **argv)
     if(loaduvm(pgdir, (char*)ph.vaddr, ip, ph.off, ph.filesz) < 0)
       goto bad;
   }
+  executable_tainted = inode_is_tainted(ip);
   iunlockput(ip);
   end_op();
   ip = 0;
@@ -94,6 +101,8 @@ exec(char *path, char **argv)
   safestrcpy(curproc->name, last, sizeof(curproc->name));
 
   // Commit to the user image.
+  if(executable_tainted)
+    taint_current();
   oldpgdir = curproc->pgdir;
   curproc->pgdir = pgdir;
   curproc->sz = sz;

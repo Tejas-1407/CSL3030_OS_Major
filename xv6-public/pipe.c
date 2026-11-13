@@ -17,6 +17,7 @@ struct pipe {
   uint nwrite;    // number of bytes written
   int readopen;   // read fd is still open
   int writeopen;  // write fd is still open
+  int tainted;    // Data in this pipe came from a tainted process.
   struct proc *writer; // process that most recently wrote to the pipe
 };
 
@@ -36,6 +37,7 @@ pipealloc(struct file **f0, struct file **f1)
   p->nwrite = 0;
   p->nread = 0;
   p->writer = 0;
+  p->tainted = 0;
   initlock(&p->lock, "pipe");
   (*f0)->type = FD_PIPE;
   (*f0)->readable = 1;
@@ -115,6 +117,7 @@ pipewrite(struct pipe *p, char *addr, int n)
 {
   int i;
   struct proc *writer = myproc();
+  int writer_tainted = proc_is_tainted();
 
   acquire(&p->lock);
   for(i = 0; i < n; i++){
@@ -127,6 +130,8 @@ pipewrite(struct pipe *p, char *addr, int n)
       sleep(&p->nwrite, &p->lock);  //DOC: pipewrite-sleep
     }
     p->data[p->nwrite++ % PIPESIZE] = addr[i];
+    if(writer_tainted)
+      p->tainted = 1;
     if(i == 0){
       p->writer = writer;
       // PIPE DEPENDENCY DEBUG: remove after validation.
@@ -170,6 +175,8 @@ piperead(struct pipe *p, char *addr, int n)
       break;
     addr[i] = p->data[p->nread++ % PIPESIZE];
   }
+  if(i > 0 && p->tainted)
+    taint_current();
   wakeup(&p->nwrite);  //DOC: piperead-wakeup
   release(&p->lock);
   return i;

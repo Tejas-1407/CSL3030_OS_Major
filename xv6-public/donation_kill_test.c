@@ -143,8 +143,8 @@ main(int argc, char *argv[])
   close(competitor_ready[0]);
 
   token = 'g';
-  if(write(writer_go[1], &token, 1) != 1 ||
-     write(competitor_go[1], &token, 1) != 1){
+  if(write(competitor_go[1], &token, 1) != 1 ||
+     write(writer_go[1], &token, 1) != 1){
     printf(1, "donation_kill_test: release failed\n");
     exit();
   }

@@ -56,6 +56,7 @@ struct proc {
   uint deadline;
   uint donated;
   struct proc *waiting_on;
+  int tainted;                 // Process has consumed untrusted data.
 };
 
 // Process memory is laid out contiguously, low addresses first:

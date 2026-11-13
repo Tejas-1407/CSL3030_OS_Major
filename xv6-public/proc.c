@@ -95,6 +95,7 @@ found:
   p->deadline = NO_DEADLINE;
   p->donated = NO_DEADLINE;
   p->waiting_on = 0;
+  p->tainted = 0;
 
   release(&ptable.lock);
 
@@ -205,6 +206,7 @@ fork(void)
   }
   np->sz = curproc->sz;
   np->parent = curproc;
+  np->tainted = curproc->tainted;
   *np->tf = *curproc->tf;
 
   // Clear %eax so that fork returns 0 in the child.
@@ -271,6 +273,7 @@ exit(void)
   }
 
   curproc->waiting_on = 0;
+  curproc->tainted = 0;
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->waiting_on == curproc)
       p->waiting_on = 0;
@@ -309,6 +312,7 @@ wait(void)
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
+        p->tainted = 0;
         p->state = UNUSED;
         release(&ptable.lock);
         return pid;
@@ -324,6 +328,19 @@ wait(void)
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }
+}
+
+// Taint belongs to the currently executing process; it is copied at fork.
+int
+proc_is_tainted(void)
+{
+  return myproc()->tainted;
+}
+
+void
+taint_current(void)
+{
+  myproc()->tainted = 1;
 }
 
 //PAGEBREAK: 42
